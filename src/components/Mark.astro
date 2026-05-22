@@ -1,0 +1,29 @@
+---
+/**
+ * Mark — the sprout brand mark.
+ * Two leaves rotate on hover (parent .mark:hover triggers).
+ */
+const { size = 32 } = Astro.props;
+---
+
+<span class="mark" style={`display:inline-flex;width:${size}px;height:${size}px;`}>
+  <svg viewBox="0 0 64 64" width={size} height={size} aria-hidden="true">
+    <circle cx="32" cy="34" r="20" fill="#E55A30" opacity="0.88" filter="url(#dg-wc-mini)" />
+    <g class="leaves" filter="url(#dg-wc-mini)">
+      <path d="M32 34 Q 18 14 8 24 Q 14 38 32 34 Z" fill="#87A684" opacity="0.88" />
+      <path d="M32 34 Q 48 16 58 28 Q 50 40 32 34 Z" fill="#E8A33D" opacity="0.82" />
+    </g>
+  </svg>
+</span>
+
+<style>
+  .mark .leaves {
+    transform-origin: 32px 34px;
+    transform-box: fill-box;
+    transition: transform 600ms var(--ease-soft);
+  }
+  :global(a:hover) .mark .leaves,
+  :global(.mark:hover) .leaves {
+    transform: rotate(28deg);
+  }
+</style>

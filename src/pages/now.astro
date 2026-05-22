@@ -1,0 +1,166 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE } from '../site.config.js';
+import { getCollection } from 'astro:content';
+
+const recentEssays = (await getCollection('essays', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .slice(0, 2);
+
+const recentNotes = (await getCollection('notes', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.lastWatered.valueOf() - a.data.lastWatered.valueOf())
+  .slice(0, 2);
+
+const today = new Date();
+const yyyymm = today.toLocaleDateString('en-CA').slice(0, 7).replace('-', '·');
+---
+
+<Base current="now" title="now">
+  <main class="shell">
+
+    <div class="crumb">
+      <div>§ 05 · <b>now</b> · 我现在在做什么</div>
+      <div class="right">updated · {yyyymm} · {SITE.location}</div>
+    </div>
+
+    <header class="head">
+      <h1>currently <em>tending</em><span class="dot">.</span></h1>
+      <p class="lead">
+        这一页每月手动更新一次, 比 <a href="/about">about</a> 新鲜, 比 <a href="/writing">writing</a> 轻。
+        想知道我这阵子在干嘛, 看这里。
+      </p>
+    </header>
+
+    <section class="facets">
+      <div class="facet do">
+        <div class="head">
+          <div class="label"><span class="g">✎</span><span>在做</span></div>
+          <span class="eb">building</span>
+        </div>
+        <ul>
+          <li>把这个网站从设计稿变成 Astro 项目</li>
+          <li>写《vibe-coding 之后》的下一篇</li>
+          <li>一个用 ai 生成假唐诗的爬虫</li>
+        </ul>
+      </div>
+
+      <div class="facet read">
+        <div class="head">
+          <div class="label"><span class="g">§</span><span>在读</span></div>
+          <span class="eb">reading</span>
+        </div>
+        <ul>
+          <li>《地下森林》· 周晓枫 · 42%</li>
+          <li>《How to Take Smart Notes》</li>
+          <li>《The Order of Time》· 第二次重读</li>
+        </ul>
+      </div>
+
+      <div class="facet hear">
+        <div class="head">
+          <div class="label"><span class="g">♪</span><span>在听</span></div>
+          <span class="eb">listening</span>
+        </div>
+        <ul>
+          <li>Nils Frahm · All Melody · loop</li>
+          <li>李宗盛 · 山丘 跨年 live</li>
+          <li>Acquired · NVIDIA 史话</li>
+        </ul>
+      </div>
+
+      <div class="facet think">
+        <div class="head">
+          <div class="label"><span class="g">※</span><span>在想</span></div>
+          <span class="eb">thinking</span>
+        </div>
+        <ul>
+          <li>wood 是不是比 garden 更野一点?</li>
+          <li>compost 这个词, 还能挖多深?</li>
+          <li>每周三晚上不上网, 能坚持多久?</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="links">
+      <div class="links-col">
+        <h3>recent writing</h3>
+        {recentEssays.map(e => (
+          <a href={`/writing/${e.slug}`}>
+            <span class="t">{e.data.title}</span>
+            <span class="d">{e.data.summary}</span>
+          </a>
+        ))}
+      </div>
+      <div class="links-col">
+        <h3>recent in the wood</h3>
+        {recentNotes.map(n => (
+          <a href={`/wood/${n.slug}`}>
+            <span class="t"><span class={`blob ${n.data.stage}`}></span>{n.data.title}</span>
+            <span class="d">{n.data.summary}</span>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <div class="footer-line">
+      <p>
+        最近一次更新 <b>{yyyymm}</b>。
+        想知道更细的, 去 <a href="/wood">wood</a> 看半成品笔记, 或者 <a href="/contact">寄一封信</a>。
+      </p>
+    </div>
+
+  </main>
+</Base>
+
+<style>
+  .crumb { padding: 24px 0 8px; display: flex; justify-content: space-between; font-family: var(--font-h); font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-3); }
+  .crumb b { color: var(--ink); font-weight: 500; }
+  .crumb .right { font-family: var(--font-mono); font-size: 11px; color: var(--ink-4); letter-spacing: 0.06em; }
+
+  .head { padding: 36px 0 48px; max-width: 920px; }
+  .head h1 { font-family: var(--font-display); font-weight: 400; font-size: clamp(64px, 9vw, 130px); line-height: 0.9; letter-spacing: -0.025em; margin: 0 0 18px; text-wrap: balance; }
+  .head h1 em { font-style: italic; color: var(--dye-tomato); }
+  .head h1 .dot { color: var(--dye-sun); }
+  .head .lead { font-family: var(--font-body); font-style: italic; font-size: 19px; line-height: 1.55; color: var(--ink-2); max-width: 56ch; margin: 0; }
+  .head .lead a { color: var(--ink); text-decoration-color: var(--dye-tomato); }
+
+  .facets { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 80px; }
+  .facet { background: var(--paper-soft); border: 1.5px solid var(--ink); box-shadow: 8px 8px 0 var(--ink-2); padding: 32px 36px; position: relative; overflow: hidden; isolation: isolate; transition: transform var(--dur-base); }
+  .facet:hover { transform: translate(-2px, -2px); box-shadow: 10px 10px 0 var(--ink-2); }
+  .facet::before { content: ""; position: absolute; inset: -10% -10%; z-index: -1; background: radial-gradient(40% 50% at 90% 90%, var(--c-wash, var(--tomato-wash)) 0%, transparent 70%); filter: url(#dg-wc) blur(2px); opacity: 0.6; }
+  .facet.do    { --c: var(--dye-tomato); --c-wash: var(--tomato-wash); }
+  .facet.read  { --c: var(--dye-sage);   --c-wash: var(--sage-wash); }
+  .facet.hear  { --c: var(--dye-sun);    --c-wash: var(--sun-wash); }
+  .facet.think { --c: var(--dye-plum);   --c-wash: var(--plum-wash); }
+
+  .facet .head { display: flex; align-items: baseline; justify-content: space-between; padding-bottom: 14px; border-bottom: 1px solid var(--c); margin-bottom: 16px; padding-top: 0; max-width: none; }
+  .facet .head h1 { display: none; }
+  .facet .label { display: flex; align-items: baseline; gap: 12px; font-family: var(--font-display); font-style: italic; font-size: 40px; color: var(--ink); }
+  .facet .label .g { font-family: var(--font-display); font-style: italic; font-size: 40px; color: var(--c); line-height: 0.8; }
+  .facet .eb { font-family: var(--font-h); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--c); font-weight: 600; }
+
+  .facet ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; }
+  .facet ul li { font-family: var(--font-body); font-size: 17px; line-height: 1.45; color: var(--ink); padding-left: 18px; position: relative; }
+  .facet ul li::before { content: "·"; color: var(--c); position: absolute; left: 4px; top: -2px; font-size: 22px; }
+
+  .links { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; padding-top: 32px; border-top: 1px dashed var(--ink-3); margin-bottom: 56px; }
+  .links-col h3 { font-family: var(--font-h); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--dye-tomato); margin: 0 0 14px; font-weight: 600; }
+  .links a { display: flex; flex-direction: column; gap: 4px; padding: 12px 0; border-bottom: 1px dotted var(--rule); text-decoration: none; }
+  .links a:hover { background: var(--paper-soft); }
+  .links a .t { font-family: var(--font-body); font-style: italic; font-size: 16px; color: var(--ink); display: flex; align-items: baseline; gap: 8px; }
+  .links a .t .blob { width: 7px; height: 7px; border-radius: 50%; align-self: center; }
+  .links a .t .blob.seedling { background: var(--dye-sage); }
+  .links a .t .blob.growing { background: var(--dye-sun); }
+  .links a .t .blob.evergreen { background: var(--dye-tomato); }
+  .links a .d { font-family: var(--font-body); font-style: italic; font-size: 13px; color: var(--ink-3); line-height: 1.45; }
+
+  .footer-line { padding-top: 28px; border-top: 1px solid var(--ink); }
+  .footer-line p { font-family: var(--font-body); font-style: italic; font-size: 14px; color: var(--ink-3); margin: 0; max-width: 56ch; }
+  .footer-line p b { color: var(--dye-tomato); font-style: normal; font-weight: 600; }
+  .footer-line p a { color: var(--ink); text-decoration-color: var(--dye-tomato); }
+
+  @media (max-width: 760px) {
+    .facets { grid-template-columns: 1fr; gap: 20px; }
+    .links { grid-template-columns: 1fr; gap: 20px; }
+  }
+</style>

@@ -1,0 +1,54 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="404 · 迷路了" description="404 — you wandered off the path">
+  <main class="shell">
+    <section class="lost">
+      <div class="big">404<span class="dot">.</span></div>
+      <h1>你走远了一点。</h1>
+      <p class="lead">
+        这里没有你要找的东西。 没关系 — 林子里走错路也是一种逛法。
+      </p>
+
+      <div class="options">
+        <a href="/">
+          <span class="eb">回 home</span>
+          <span class="t">回到入口</span>
+          <span class="d">从大门重新进。</span>
+        </a>
+        <a href="/wood">
+          <span class="eb">迷路也行</span>
+          <span class="t">进林子里随便走</span>
+          <span class="d">点节点, 跳 backlinks。</span>
+        </a>
+        <a href="/writing">
+          <span class="eb">读点东西</span>
+          <span class="t">看最新文章</span>
+          <span class="d">已经写完、改了三遍的。</span>
+        </a>
+      </div>
+
+      <p class="footnote">
+        如果你觉得这是个 bug (链接坏了), <a href="/contact">告诉我一声</a>。
+      </p>
+    </section>
+  </main>
+</Base>
+
+<style>
+  .lost { padding: 80px 0; max-width: 720px; margin: 0 auto; text-align: center; }
+  .lost .big { font-family: var(--font-display); font-style: italic; font-weight: 400; font-size: clamp(120px, 22vw, 280px); line-height: 0.85; color: var(--dye-tomato); margin: 0 0 18px; letter-spacing: -0.03em; }
+  .lost .big .dot { color: var(--ink); font-style: normal; }
+  .lost h1 { font-family: var(--font-display); font-style: italic; font-weight: 400; font-size: clamp(36px, 5vw, 56px); line-height: 1; color: var(--ink); margin: 0 0 14px; }
+  .lost .lead { font-family: var(--font-body); font-style: italic; font-size: 19px; color: var(--ink-2); line-height: 1.55; margin: 0 0 48px; max-width: 36ch; margin-left: auto; margin-right: auto; }
+  .options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; max-width: 720px; margin: 0 auto 48px; }
+  .options a { display: flex; flex-direction: column; gap: 4px; padding: 22px 22px 18px; border: 1px solid var(--rule); background: var(--paper); text-decoration: none; text-align: left; transition: transform var(--dur-base), box-shadow var(--dur-base), border-color var(--dur-base); }
+  .options a:hover { transform: translate(-2px, -2px); box-shadow: 4px 4px 0 var(--ink-3); border-color: var(--ink-3); }
+  .options a .eb { font-family: var(--font-h); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--dye-tomato); font-weight: 600; }
+  .options a .t { font-family: var(--font-display); font-style: italic; font-size: 22px; line-height: 1; color: var(--ink); margin: 4px 0 4px; }
+  .options a .d { font-family: var(--font-body); font-style: italic; font-size: 13px; color: var(--ink-3); }
+  .lost .footnote { font-family: var(--font-body); font-style: italic; font-size: 14px; color: var(--ink-3); }
+  .lost .footnote a { color: var(--ink); text-decoration-color: var(--dye-tomato); text-decoration-thickness: 1.5px; }
+  @media (max-width: 720px) { .options { grid-template-columns: 1fr; } }
+</style>

@@ -1,0 +1,152 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE, FEATURES } from '../site.config.js';
+---
+
+<Base current="contact" title="contact">
+  <main class="shell">
+
+    <div class="crumb">
+      <div>§ 07 · <b>contact</b> · say hi · 寄一封信</div>
+      <div class="right">i read everything · 回得慢但会回</div>
+    </div>
+
+    <section class="intro">
+      <h1>write <em>me</em><span class="dot">.</span></h1>
+      <div class="rhs">
+        <p>
+          我读每一封信。 中英都可。 <b>回得慢但会回</b> — 平均 3–7 天, 偶尔 2 周。
+        </p>
+        <div class="reply-rate">
+          <div><b>4d</b><span>avg reply</span></div>
+          <div><b>97%</b><span>reply rate</span></div>
+          <div><b>0</b><span>auto-replies</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta-card">
+      <div class="lhs">
+        <div class="eb">℘ the easiest way</div>
+        <h2>just send an email.</h2>
+        <p>没有 captcha, 没有 newsletter trick, 没有 retargeting pixel。 直接 mailto 打开你的邮件客户端。</p>
+      </div>
+      <a class="mailto" href={`mailto:${SITE.email}?subject=hi%20from%20${SITE.domain}`}>
+        <span class="ico">✉</span>
+        <span class="line1">{SITE.email}</span>
+        <span class="line2">open mail · 寄出 →</span>
+      </a>
+    </section>
+
+    <div class="channels-divider">
+      <span class="kicker"><b>§ 07 · 02</b> · or · 其他几个角落</span>
+      <h2>find me <em>elsewhere.</em></h2>
+    </div>
+
+    <section class="channels">
+      <a class="channel t" href={`mailto:${SITE.email}`}>
+        <span class="glyph">@</span>
+        <span class="key">email · 最稳</span>
+        <span class="val">{SITE.email}</span>
+        <span class="why">长内容、合作、私下事都走这里。 回得慢但一定会回。</span>
+      </a>
+      <a class="channel r" href="/writing/letters">
+        <span class="glyph">℘</span>
+        <span class="key">letters · 月底寄出</span>
+        <span class="val">/writing/letters · monthly</span>
+        <span class="why">{FEATURES.lettersForm ? '订阅我的月度信。' : '订阅暂时关闭 — 直接 email 我留一个位。'}</span>
+      </a>
+      <a class="channel u" href="/rss.xml">
+        <span class="glyph">↗</span>
+        <span class="key">rss · always on</span>
+        <span class="val">/rss.xml</span>
+        <span class="why">不想用 email 就用 rss。 wood 也有独立的 feed。</span>
+      </a>
+      <a class="channel s" href={SITE.github}>
+        <span class="glyph">§</span>
+        <span class="key">github · 代码这块</span>
+        <span class="val">{SITE.github.replace('https://', '')}</span>
+        <span class="why">看几个能跑的小东西。 issue 比 email 更适合 bug。</span>
+      </a>
+    </section>
+
+    <div class="response">
+      <div class="left">
+        <p>
+          我读 <b>每一封</b> 信, 哪怕只有 "hi" 两个字。 但我回得慢 — 一般 <b>3–7 天</b>, 有时候更久。
+          如果一周后没回, 大概率是我已经写了一封, 没寄出去 — 再戳我一次就好。
+        </p>
+      </div>
+      <div class="right">
+        thanks,<br/>
+        {SITE.name}
+        <small>— {SITE.location}, 2026</small>
+      </div>
+    </div>
+
+  </main>
+</Base>
+
+<style>
+  .crumb { padding: 24px 0 8px; display: flex; justify-content: space-between; font-family: var(--font-h); font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-3); }
+  .crumb b { color: var(--ink); font-weight: 500; }
+  .crumb .right { font-family: var(--font-mono); font-size: 11px; color: var(--ink-4); letter-spacing: 0.06em; }
+
+  .intro { padding: 36px 0 36px; display: grid; grid-template-columns: 1.5fr 1fr; gap: 48px; align-items: end; }
+  .intro h1 { font-family: var(--font-display); font-weight: 400; font-size: clamp(64px, 9vw, 124px); line-height: 0.9; letter-spacing: -0.025em; margin: 0; text-wrap: balance; }
+  .intro h1 em { font-style: italic; color: var(--dye-tomato); }
+  .intro h1 .dot { color: var(--dye-sun); }
+  .intro .rhs { padding-bottom: 16px; border-left: 1px solid var(--ink); padding-left: 28px; }
+  .intro .rhs p { font-family: var(--font-body); font-style: italic; font-size: 17px; line-height: 1.6; color: var(--ink-2); margin: 0 0 20px; max-width: 38ch; }
+  .intro .rhs p b { font-style: normal; font-weight: 600; color: var(--ink); }
+  .intro .rhs .reply-rate { display: flex; gap: 18px; padding-top: 14px; border-top: 1px dashed var(--ink-3); }
+  .intro .rhs .reply-rate div { display: flex; flex-direction: column; gap: 2px; }
+  .intro .rhs .reply-rate b { font-family: var(--font-display); font-style: italic; font-size: 24px; color: var(--dye-tomato); line-height: 1; }
+  .intro .rhs .reply-rate span { font-family: var(--font-h); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); }
+
+  .cta-card { display: grid; grid-template-columns: 1.2fr 1fr; gap: 48px; align-items: center; background: var(--paper-soft); border: 1.5px solid var(--ink); box-shadow: 10px 10px 0 var(--ink-2); padding: 48px 56px; margin: 32px 0 80px; position: relative; overflow: hidden; isolation: isolate; }
+  .cta-card::before { content: ""; position: absolute; inset: -20% -10%; z-index: -1; background: radial-gradient(40% 60% at 80% 30%, var(--tomato-wash) 0%, transparent 70%), radial-gradient(50% 60% at 90% 80%, var(--sun-wash) 0%, transparent 70%); filter: url(#dg-wc) blur(2px); opacity: 0.55; }
+  .cta-card .eb { font-family: var(--font-h); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--dye-tomato); font-weight: 600; margin-bottom: 8px; }
+  .cta-card h2 { font-family: var(--font-display); font-weight: 400; font-style: normal; font-size: clamp(36px, 5vw, 64px); line-height: 0.95; letter-spacing: -0.02em; margin: 0 0 12px; color: var(--ink); text-wrap: balance; }
+  .cta-card p { font-family: var(--font-body); font-style: italic; font-size: 16px; line-height: 1.55; color: var(--ink-2); margin: 0; max-width: 40ch; }
+  .cta-card .mailto { display: flex; flex-direction: column; gap: 10px; padding: 26px 30px; background: var(--ink); color: var(--paper); border: 1.5px solid var(--ink); text-decoration: none; align-items: flex-start; transition: background var(--dur-base), transform var(--dur-base); }
+  .cta-card .mailto:hover { background: var(--dye-tomato); border-color: var(--dye-tomato); transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--ink-2); }
+  .cta-card .mailto .ico { font-family: var(--font-mono); font-size: 22px; }
+  .cta-card .mailto .line1 { font-family: var(--font-mono); font-size: 17px; letter-spacing: 0.03em; }
+  .cta-card .mailto .line2 { font-family: var(--font-h); font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 600; opacity: 0.85; }
+
+  .channels-divider { margin: 0 0 28px; display: grid; grid-template-columns: auto 1fr auto; gap: 24px; align-items: baseline; padding-bottom: 18px; border-bottom: 1px solid var(--ink); }
+  .channels-divider .kicker { font-family: var(--font-h); font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-3); }
+  .channels-divider .kicker b { color: var(--dye-tomato); font-weight: 500; }
+  .channels-divider h2 { font-family: var(--font-display); font-style: normal; font-weight: 400; font-size: clamp(32px, 4vw, 56px); line-height: 0.95; letter-spacing: -0.02em; margin: 0; }
+  .channels-divider h2 em { font-style: italic; color: var(--dye-tomato); }
+
+  .channels { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-bottom: 64px; }
+  .channel { padding: 22px 24px; background: var(--paper-soft); border: 1px solid var(--rule); display: flex; flex-direction: column; gap: 8px; text-decoration: none; transition: transform var(--dur-base), border-color var(--dur-base), box-shadow var(--dur-base); }
+  .channel:hover { transform: translate(-2px, -2px); border-color: var(--ink); box-shadow: 4px 4px 0 var(--ink-3); }
+  .channel .glyph { font-family: var(--font-display); font-style: italic; font-size: 38px; line-height: 1; }
+  .channel.t .glyph { color: var(--dye-tomato); }
+  .channel.r .glyph { color: var(--dye-rose); }
+  .channel.s .glyph { color: var(--dye-sage); }
+  .channel.u .glyph { color: var(--dye-sun); }
+  .channel .key { font-family: var(--font-h); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-3); font-weight: 500; margin-top: 4px; }
+  .channel .val { font-family: var(--font-mono); font-size: 13px; color: var(--ink); }
+  .channel .why { font-family: var(--font-body); font-style: italic; font-size: 13px; color: var(--ink-3); line-height: 1.4; margin-top: auto; padding-top: 8px; border-top: 1px dashed var(--rule); }
+
+  .response { padding: 24px 0; border-top: 1px dashed var(--ink-3); display: flex; justify-content: space-between; align-items: baseline; gap: 32px; }
+  .response .left p { font-family: var(--font-body); font-style: italic; font-size: 14px; line-height: 1.55; color: var(--ink-3); margin: 0; max-width: 56ch; }
+  .response .left p b { font-style: normal; font-weight: 600; color: var(--ink); }
+  .response .right { font-family: var(--font-sign); font-size: 36px; color: var(--dye-tomato); line-height: 1.1; transform: rotate(-3deg); white-space: nowrap; text-align: right; }
+  .response .right small { display: block; font-family: var(--font-h); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); transform: rotate(3deg); margin-top: 6px; font-weight: 500; }
+
+  @media (max-width: 880px) {
+    .intro { grid-template-columns: 1fr; gap: 24px; }
+    .intro .rhs { border-left: 0; padding-left: 0; padding-top: 18px; border-top: 1px solid var(--ink); }
+    .cta-card { grid-template-columns: 1fr; padding: 32px; gap: 24px; }
+    .channels { grid-template-columns: 1fr 1fr; }
+    .response { flex-direction: column; gap: 18px; align-items: flex-start; }
+  }
+  @media (max-width: 560px) {
+    .channels { grid-template-columns: 1fr; }
+  }
+</style>

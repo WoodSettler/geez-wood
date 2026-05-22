@@ -1,0 +1,19 @@
+---
+/**
+ * SvgFilters — drop once near top of <body>.
+ * Provides #dg-wc and #dg-wc-mini watercolor filters used everywhere.
+ */
+---
+
+<svg width="0" height="0" style="position: absolute" aria-hidden="true">
+  <defs>
+    <filter id="dg-wc" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.012 0.018" numOctaves="2" seed="7" result="warp"/>
+      <feDisplacementMap in="SourceGraphic" in2="warp" scale="38"/>
+    </filter>
+    <filter id="dg-wc-mini">
+      <feTurbulence type="fractalNoise" baseFrequency="0.6" numOctaves="2" seed="9" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="3.2"/>
+    </filter>
+  </defs>
+</svg>

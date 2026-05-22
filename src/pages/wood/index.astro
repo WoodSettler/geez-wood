@@ -1,0 +1,276 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+
+const notes = await getCollection('notes', ({ data }) => !data.draft);
+
+// Position nodes on a 1200×700 canvas via deterministic hash so layout is stable.
+function hash(s) {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+
+// Build adjacency (bi-directional) from backlinks
+const adj = {};
+notes.forEach(n => { adj[n.slug] = new Set(); });
+notes.forEach(n => {
+  n.data.backlinks.forEach(b => {
+    if (adj[b] !== undefined) {
+      adj[n.slug].add(b);
+      adj[b].add(n.slug);
+    }
+  });
+});
+
+// position: scatter by stage band + jitter by hash
+function pos(n) {
+  const h = hash(n.slug);
+  const band = { evergreen: [200, 380], growing: [60, 200, 380, 540], seedling: [60, 540] };
+  // simple scatter — y by stage, x spread by index, jitter
+  const stagePool = notes.filter(x => x.data.stage === n.data.stage);
+  const idx = stagePool.indexOf(n);
+  const xStep = 1100 / Math.max(stagePool.length, 1);
+  const x = 50 + idx * xStep + ((h % 60) - 30);
+  let y;
+  if (n.data.stage === 'evergreen')      y = 300 + ((h % 80) - 40);
+  else if (n.data.stage === 'growing')   y = ((h % 2) === 0 ? 140 : 460) + ((h % 40) - 20);
+  else                                    y = ((h % 2) === 0 ?  70 : 580) + ((h % 30) - 15);
+  return [Math.max(40, Math.min(1160, x)), Math.max(40, Math.min(660, y))];
+}
+
+const positioned = notes.map(n => {
+  const [x, y] = pos(n);
+  return { ...n, x, y, links: adj[n.slug].size };
+});
+
+const edges = [];
+notes.forEach(n => {
+  n.data.backlinks.forEach(b => {
+    if (b > n.slug && adj[b] !== undefined) {
+      edges.push({ a: n.slug, b });
+    }
+  });
+});
+
+// stage counts
+const ct = {
+  seedling:  notes.filter(n => n.data.stage === 'seedling').length,
+  growing:   notes.filter(n => n.data.stage === 'growing').length,
+  evergreen: notes.filter(n => n.data.stage === 'evergreen').length,
+};
+const total = notes.length;
+
+const recent = [...notes].sort((a, b) => b.data.lastWatered.valueOf() - a.data.lastWatered.valueOf()).slice(0, 5);
+const ago = (d) => {
+  const days = Math.max(1, Math.round((Date.now() - d.getTime()) / 86400000));
+  if (days < 7)  return `${days} d`;
+  if (days < 30) return `${Math.round(days / 7)} w`;
+  return `${Math.round(days / 30)} mo`;
+};
+
+// serialize notes minimally for client-side JS
+const clientData = positioned.map(n => ({
+  slug: n.slug, title: n.data.title, stage: n.data.stage,
+  summary: n.data.summary || '',
+  tags: n.data.tags, lastWatered: ago(n.data.lastWatered),
+  x: n.x, y: n.y, links: n.links,
+}));
+const clientAdj = {};
+Object.keys(adj).forEach(k => { clientAdj[k] = [...adj[k]]; });
+---
+
+<Base current="wood" title="wood">
+  <main class="shell">
+
+    <div class="crumb">
+      <div>§ 03 · <b>wood</b> · 数字森林</div>
+      <div class="right">{total} notes · last watered {recent[0] ? ago(recent[0].data.lastWatered) : '—'} ago</div>
+    </div>
+
+    <header class="wood-head">
+      <h1>everything <span class="alt">is</span> connected<span class="dot">.</span></h1>
+      <p class="blurb">
+        这是我所有笔记的图谱。 节点是 <b>note</b> · 连线是 <b>反向链接</b> · 颜色是 <b>成熟度</b>。
+        点一下节点看摘要, 沿 <code>backlinks</code> 跳来跳去 — 就是林子本来的逛法。
+      </p>
+    </header>
+
+    <div class="toolbar">
+      <div class="stages" role="group">
+        <button class="stage-pill is-active" data-stage="all">all · <span>{total}</span></button>
+        <button class="stage-pill" data-stage="seedling"><span class="blob"></span>seedling · <span>{ct.seedling}</span></button>
+        <button class="stage-pill" data-stage="growing"><span class="blob"></span>growing · <span>{ct.growing}</span></button>
+        <button class="stage-pill" data-stage="evergreen"><span class="blob"></span>evergreen · <span>{ct.evergreen}</span></button>
+      </div>
+
+      <div class="search">
+        <input id="searchInput" type="search" placeholder="搜笔记标题、tag 或 backlink…" autocomplete="off"/>
+        <span class="hint">/</span>
+      </div>
+
+      <div class="view-toggle">
+        <button class="is-active" data-view="map">⊕ map</button>
+        <button data-view="list">≡ list</button>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="map-canvas" id="mapCanvas">
+        <div class="wash"></div>
+        <svg id="mapSvg" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid meet" aria-label="notes graph">
+          <g id="edges"></g>
+          <g id="nodes"></g>
+        </svg>
+        <div class="hud tl">
+          <div class="lg">
+            <span><span class="b" style="background: var(--dye-sage);"></span>seedling</span>
+            <span><span class="b" style="background: var(--dye-sun);"></span>growing</span>
+            <span><span class="b" style="background: var(--dye-tomato);"></span>evergreen</span>
+          </div>
+        </div>
+        <div class="hud br">drag to pan · scroll to zoom<br/>click a node to expand</div>
+      </div>
+
+      <div class="map-list" id="mapList" hidden></div>
+
+      <aside class="sidebar" id="sidebar">
+        <div class="head">
+          <div class="meta"><span id="sbL">DETAILS · 详情</span> <span id="sbR"><b>—</b></span></div>
+        </div>
+        <div class="body" id="sbBody">
+          <div class="sb-default">
+            <p class="quick">悬停一个节点 → 它的反向链接会高亮。 点一下 → 摘要、tag、所有相关笔记会显示在这里。</p>
+            <h3>by stage</h3>
+            <div class="stages-ct">
+              <div class="ct seedling"><b>{ct.seedling}</b><span>seedling</span></div>
+              <div class="ct growing"><b>{ct.growing}</b><span>growing</span></div>
+              <div class="ct evergreen"><b>{ct.evergreen}</b><span>evergreen</span></div>
+            </div>
+            <h3>recently watered</h3>
+            <div class="recently">
+              {recent.map(n => (
+                <div class="item">
+                  <span class="when">{ago(n.data.lastWatered)}</span>
+                  <a class="t" href={`/wood/${n.slug}`}>{n.data.title}</a>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+  </main>
+
+  <script type="application/json" id="wood-data" set:html={JSON.stringify({ nodes: clientData, edges, adj: clientAdj })}></script>
+  <script src="/wood-cluster.js" defer></script>
+</Base>
+
+<style>
+  .crumb { padding: 24px 0 8px; display: flex; justify-content: space-between; font-family: var(--font-h); font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-3); }
+  .crumb b { color: var(--ink); font-weight: 500; }
+  .crumb .right { font-family: var(--font-mono); font-size: 11px; color: var(--ink-4); letter-spacing: 0.06em; }
+
+  .wood-head { display: grid; grid-template-columns: 1.4fr 1fr; gap: 56px; align-items: end; padding: 32px 0 36px; }
+  .wood-head h1 { font-family: var(--font-display); font-weight: 400; font-size: clamp(56px, 8vw, 108px); line-height: 0.92; letter-spacing: -0.025em; margin: 0; text-wrap: balance; color: var(--ink); }
+  .wood-head h1 .alt { color: var(--dye-tomato); }
+  .wood-head h1 .dot { color: var(--dye-sun); }
+  .wood-head .blurb { font-family: var(--font-body); font-style: italic; font-size: 18px; line-height: 1.55; color: var(--ink-2); max-width: 44ch; margin: 0; }
+  .wood-head .blurb b { font-style: normal; font-weight: 600; color: var(--ink); }
+  .wood-head .blurb code { font-family: var(--font-mono); font-size: 0.86em; background: var(--paper-deep); padding: 0.1em 0.4em; border-radius: 2px; font-style: normal; color: var(--ink); }
+
+  .toolbar { display: grid; grid-template-columns: auto 1fr auto; gap: 24px; align-items: center; padding: 18px 0; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); margin-bottom: 32px; }
+  .stages { display: flex; gap: 8px; align-items: center; }
+  .stage-pill { display: inline-flex; align-items: center; gap: 7px; font-family: var(--font-h); font-size: 12px; font-weight: 500; padding: 7px 13px; border-radius: 999px; background: transparent; border: 1px solid var(--ink-3); color: var(--ink-2); cursor: pointer; transition: background var(--dur-base), color var(--dur-base), border-color var(--dur-base); }
+  .stage-pill .blob { width: 8px; height: 8px; border-radius: 50%; }
+  .stage-pill.is-active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .stage-pill[data-stage="seedling"]  .blob { background: var(--dye-sage); }
+  .stage-pill[data-stage="growing"]   .blob { background: var(--dye-sun); }
+  .stage-pill[data-stage="evergreen"] .blob { background: var(--dye-tomato); }
+
+  .search { position: relative; max-width: 380px; margin: 0 auto; width: 100%; }
+  .search input { width: 100%; font-family: var(--font-body); font-style: italic; font-size: 16px; background: transparent; border: 0; border-bottom: 1.5px solid var(--ink); padding: 8px 26px 8px 24px; color: var(--ink); outline: none; }
+  .search input::placeholder { color: var(--ink-4); }
+  .search input:focus { border-bottom-color: var(--dye-tomato); }
+  .search::before { content: "⌕"; position: absolute; left: 0; top: 50%; transform: translateY(-55%); font-family: var(--font-mono); font-size: 18px; color: var(--ink-3); }
+  .search .hint { position: absolute; right: 0; top: 50%; transform: translateY(-50%); font-family: var(--font-mono); font-size: 10px; color: var(--ink-4); letter-spacing: 0.08em; pointer-events: none; }
+
+  .view-toggle { display: flex; border: 1px solid var(--ink-3); border-radius: 2px; overflow: hidden; }
+  .view-toggle button { background: transparent; border: 0; cursor: pointer; padding: 7px 12px; font-family: var(--font-h); font-size: 11px; letter-spacing: 0.1em; color: var(--ink-2); text-transform: uppercase; border-right: 1px solid var(--ink-3); }
+  .view-toggle button:last-child { border-right: 0; }
+  .view-toggle button.is-active { background: var(--ink); color: var(--paper); }
+
+  .stage { display: grid; grid-template-columns: 1fr 320px; gap: 32px; align-items: start; }
+  .map-canvas { position: relative; background: var(--paper-soft); border: 1.5px solid var(--ink); box-shadow: 8px 8px 0 var(--ink-2); min-height: 680px; height: 70vh; overflow: hidden; cursor: grab; }
+  .map-canvas.is-dragging { cursor: grabbing; }
+  .map-canvas .wash { position: absolute; inset: -15%; z-index: 0; filter: url(#dg-wc) blur(2px); opacity: 0.45; background: radial-gradient(40% 50% at 30% 30%, var(--sage-wash) 0%, transparent 70%), radial-gradient(50% 50% at 70% 60%, var(--sun-wash) 0%, transparent 70%), radial-gradient(35% 35% at 50% 80%, var(--tomato-wash) 0%, transparent 70%); pointer-events: none; }
+  .map-canvas svg { position: absolute; inset: 0; z-index: 2; }
+
+  :global(.edge) { stroke: var(--ink-3); stroke-width: 1; fill: none; opacity: 0.35; transition: stroke var(--dur-base), opacity var(--dur-base), stroke-width var(--dur-base); }
+  :global(.edge.is-related) { stroke: var(--dye-tomato); stroke-width: 1.6; opacity: 0.9; }
+  :global(.edge.is-faded) { opacity: 0.08; }
+
+  :global(.node) { cursor: pointer; transition: opacity var(--dur-base); }
+  :global(.node .ring) { fill: var(--paper); stroke: var(--ink-3); stroke-width: 1; transition: stroke var(--dur-base), stroke-width var(--dur-base); }
+  :global(.node .dot) { transition: fill var(--dur-base), r var(--dur-base); }
+  :global(.node[data-stage="seedling"] .dot)  { fill: var(--dye-sage); }
+  :global(.node[data-stage="growing"] .dot)   { fill: var(--dye-sun); }
+  :global(.node[data-stage="evergreen"] .dot) { fill: var(--dye-tomato); }
+  :global(.node .label) { font-family: var(--font-body); font-style: italic; font-size: 12px; fill: var(--ink-2); pointer-events: none; user-select: none; }
+  :global(.node[data-stage="evergreen"] .label) { font-weight: 600; fill: var(--ink); }
+  :global(.node:hover .ring), :global(.node.is-selected .ring) { stroke: var(--ink); stroke-width: 2; }
+  :global(.node.is-related .ring) { stroke: var(--dye-tomato); stroke-width: 1.6; }
+  :global(.node.is-faded) { opacity: 0.22; }
+  :global(.node.is-hidden) { opacity: 0.06; pointer-events: none; }
+
+  .hud { position: absolute; z-index: 3; font-family: var(--font-mono); color: var(--ink-3); font-size: 11px; letter-spacing: 0.06em; pointer-events: none; }
+  .hud.tl { top: 14px; left: 16px; }
+  .hud.br { bottom: 14px; right: 16px; text-align: right; line-height: 1.5; }
+  .hud .lg { display: flex; gap: 14px; }
+  .hud .lg span { display: inline-flex; align-items: center; gap: 6px; }
+  .hud .lg .b { width: 8px; height: 8px; border-radius: 50%; }
+
+  .sidebar { position: sticky; top: 84px; height: calc(70vh + 0px); min-height: 680px; border: 1.5px solid var(--ink); background: var(--paper-soft); box-shadow: 8px 8px 0 var(--ink-2); overflow: hidden; display: flex; flex-direction: column; }
+  .sidebar .head { padding: 18px 20px 14px; border-bottom: 1px solid var(--ink-3); background: var(--paper-deep); }
+  .sidebar .head .meta { display: flex; justify-content: space-between; font-family: var(--font-h); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); }
+  .sidebar .head .meta b { color: var(--ink); font-weight: 500; }
+  .sidebar .body { padding: 22px 20px 24px; overflow-y: auto; flex: 1; }
+
+  .sb-default .quick { font-family: var(--font-body); font-style: italic; font-size: 15px; line-height: 1.55; color: var(--ink-3); margin: 0 0 22px; }
+  .sb-default h3 { font-family: var(--font-h); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-3); margin: 22px 0 12px; font-weight: 500; }
+  .sb-default .stages-ct { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin: 0 0 22px; }
+  .sb-default .stages-ct .ct { border: 1px solid var(--rule); background: var(--paper); padding: 10px 12px; }
+  .sb-default .stages-ct .ct b { font-family: var(--font-display); font-style: italic; font-size: 28px; line-height: 1; display: block; }
+  .sb-default .stages-ct .ct.seedling b  { color: var(--dye-sage); }
+  .sb-default .stages-ct .ct.growing b   { color: var(--dye-sun); }
+  .sb-default .stages-ct .ct.evergreen b { color: var(--dye-tomato); }
+  .sb-default .stages-ct .ct span { font-family: var(--font-h); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); display: block; margin-top: 4px; }
+  .sb-default .recently .item { display: grid; grid-template-columns: 50px 1fr; gap: 8px; padding: 6px 0; border-bottom: 1px dotted var(--rule); font-size: 13px; }
+  .sb-default .recently .item .when { font-family: var(--font-mono); font-size: 10px; color: var(--ink-3); align-self: center; }
+  .sb-default .recently .item a { font-family: var(--font-body); font-style: italic; color: var(--ink); text-decoration: none; }
+  .sb-default .recently .item a:hover { color: var(--dye-tomato); }
+
+  .map-list { border: 1.5px solid var(--ink); background: var(--paper-soft); box-shadow: 8px 8px 0 var(--ink-2); min-height: 680px; height: 70vh; overflow-y: auto; }
+  .map-list .row { display: grid; grid-template-columns: auto 18px 1fr auto auto; gap: 12px; padding: 14px 22px; border-bottom: 1px solid var(--rule); cursor: pointer; align-items: baseline; transition: background var(--dur-base); }
+  .map-list .row:hover { background: var(--paper-deep); }
+  .map-list .row .stamp { font-family: var(--font-mono); font-size: 10px; color: var(--ink-3); letter-spacing: 0.06em; min-width: 60px; }
+  .map-list .row .blob { width: 8px; height: 8px; border-radius: 50%; align-self: center; }
+  .map-list .row[data-stage="seedling"]  .blob { background: var(--dye-sage); }
+  .map-list .row[data-stage="growing"]   .blob { background: var(--dye-sun); }
+  .map-list .row[data-stage="evergreen"] .blob { background: var(--dye-tomato); }
+  .map-list .row .t { font-family: var(--font-body); font-style: italic; font-size: 17px; color: var(--ink); line-height: 1.3; }
+  .map-list .row .tags-mini { font-family: var(--font-mono); font-size: 10px; color: var(--ink-3); }
+  .map-list .row .bk { font-family: var(--font-mono); font-size: 10px; color: var(--dye-tomato); }
+
+  @media (max-width: 1100px) {
+    .stage { grid-template-columns: 1fr; }
+    .sidebar { position: static; height: auto; min-height: auto; }
+    .sidebar .body { max-height: 480px; }
+  }
+  @media (max-width: 760px) {
+    .wood-head { grid-template-columns: 1fr; gap: 18px; }
+    .toolbar { grid-template-columns: 1fr; gap: 14px; }
+    .map-canvas { min-height: 480px; height: 60vh; }
+  }
+</style>

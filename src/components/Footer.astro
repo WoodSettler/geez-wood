@@ -1,0 +1,96 @@
+---
+import Mark from './Mark.astro';
+import { SITE } from '../site.config.js';
+---
+
+<footer class="bottom">
+  <div class="shell">
+    <div class="row">
+      <div class="col col-brand">
+        <Mark size={38} />
+        <p>{SITE.brandBlurb}</p>
+        <div class="sig">{SITE.signoff}</div>
+      </div>
+
+      <div class="col">
+        <h5>read</h5>
+        <ul>
+          <li><a href="/writing"><span class="glyph">¶</span>essays</a></li>
+          <li><a href="/wood"><span class="glyph">※</span>wood notes</a></li>
+          <li><a href="/writing/letters"><span class="glyph">℘</span>letters</a></li>
+          <li><a href="/collections"><span class="glyph">§</span>collections</a></li>
+        </ul>
+      </div>
+
+      <div class="col">
+        <h5>elsewhere</h5>
+        <ul>
+          <li><a href="/rss.xml"><span class="glyph">↗</span>rss · all writing</a></li>
+          <li><a href="/wood/rss.xml"><span class="glyph">↗</span>rss · wood only</a></li>
+          <li><a href="/contact"><span class="glyph">↗</span>say hi · 联系</a></li>
+          <li><a href="/about/colophon"><span class="glyph">†</span>colophon</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="colophon">
+      <span>{SITE.copyright}</span>
+      <span set:html={SITE.typeset.replace(/Latitude|Director|Source Serif/g, m => `<i style="color: var(--ink-2);">${m}</i>`)} />
+    </div>
+  </div>
+</footer>
+
+<style>
+  footer.bottom {
+    padding: 64px 0 80px;
+    border-top: 1px solid var(--ink);
+    margin-top: 80px;
+  }
+  footer .row {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 32px; align-items: start;
+  }
+  footer .col-brand { display: flex; flex-direction: column; gap: 14px; }
+  footer .col-brand p {
+    font-family: var(--font-body); font-style: italic; font-size: 14px;
+    line-height: 1.55; color: var(--ink-3); margin: 0; max-width: 36ch;
+  }
+  footer .col-brand .sig {
+    font-family: var(--font-sign); font-size: 26px;
+    color: var(--dye-tomato); margin-top: 6px;
+  }
+
+  footer .col h5 {
+    font-family: var(--font-h); font-size: 11px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--ink-3);
+    margin: 0 0 12px; font-weight: 500;
+  }
+  footer .col ul {
+    list-style: none; padding: 0; margin: 0;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  footer .col ul a {
+    font-family: var(--font-body); font-style: italic; font-size: 15px;
+    color: var(--ink); text-decoration: none;
+    display: inline-flex; align-items: baseline; gap: 6px;
+  }
+  footer .col ul a .glyph {
+    color: var(--dye-tomato);
+    font-family: var(--font-display); font-size: 13px;
+  }
+  footer .col ul a:hover { color: var(--dye-tomato); }
+
+  footer .colophon {
+    margin-top: 40px; padding-top: 16px;
+    border-top: 1px dashed var(--rule);
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-family: var(--font-mono); font-size: 11px; color: var(--ink-3);
+    letter-spacing: 0.04em;
+  }
+  footer .colophon a { color: var(--ink-3); }
+
+  @media (max-width: 760px) {
+    footer .row { grid-template-columns: 1fr; }
+    footer .colophon { flex-direction: column; gap: 8px; align-items: flex-start; }
+  }
+</style>

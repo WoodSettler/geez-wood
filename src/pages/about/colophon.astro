@@ -1,0 +1,101 @@
+---
+import Base from '../../layouts/Base.astro';
+import { SITE } from '../../site.config.js';
+---
+
+<Base current="about" title="colophon">
+  <main class="shell">
+    <div class="crumb">
+      <div><a href="/about">about</a> <span class="sep">/</span> <b>colophon</b></div>
+    </div>
+
+    <header class="head">
+      <h1>colophon<span class="dot">.</span></h1>
+      <p class="lead">每个文具控做的网站都得有一个 colophon。 这就是。</p>
+    </header>
+
+    <section class="block">
+      <h2>typography</h2>
+      <dl>
+        <dt>Display</dt><dd><a href="https://velvetyne.fr/fonts/latitude/">Latitude</a> · ball-terminal italic serif by Velvetyne · OFL</dd>
+        <dt>Heads + UI</dt><dd><a href="https://velvetyne.fr/fonts/director/">Director</a> · grotesk by Velvetyne · OFL</dd>
+        <dt>Cards</dt><dd><a href="https://velvetyne.fr/fonts/abordage/">Abordage</a> · alternate grotesk · OFL</dd>
+        <dt>Signature</dt><dd><a href="https://velvetyne.fr/fonts/louise/">Louise</a> · handwritten · OFL</dd>
+        <dt>Body</dt><dd><a href="https://fonts.google.com/specimen/Source+Serif+4">Source Serif 4</a> · OFL</dd>
+        <dt>Mono</dt><dd><a href="https://www.jetbrains.com/lp/mono/">JetBrains Mono</a> · OFL</dd>
+        <dt>Hand</dt><dd><a href="https://fonts.google.com/specimen/Caveat">Caveat</a> · OFL</dd>
+      </dl>
+    </section>
+
+    <section class="block">
+      <h2>color</h2>
+      <dl>
+        <dt>Paper</dt><dd><span class="sw" style="background:#F4EEDF"></span> <code>#F4EEDF</code></dd>
+        <dt>Ink</dt><dd><span class="sw" style="background:#1A1612"></span> <code>#1A1612</code></dd>
+        <dt>Tomato (accent)</dt><dd><span class="sw" style="background:#E55A30"></span> <code>#E55A30</code></dd>
+        <dt>Sage / Sun / Rose / Plum</dt><dd><span class="sw" style="background:#87A684"></span><span class="sw" style="background:#E8A33D"></span><span class="sw" style="background:#D4527A"></span><span class="sw" style="background:#6E3F75"></span> dye palette</dd>
+        <dt>Klein (system)</dt><dd><span class="sw" style="background:#002FA7"></span> <code>#002FA7</code> · for ⌘K and jump nav only</dd>
+      </dl>
+    </section>
+
+    <section class="block">
+      <h2>tech stack</h2>
+      <dl>
+        <dt>Framework</dt><dd><a href="https://astro.build">Astro 4</a> · static site generator</dd>
+        <dt>Hosting</dt><dd><a href="https://pages.cloudflare.com">Cloudflare Pages</a> · auto-deploy from git</dd>
+        <dt>Domain</dt><dd>{SITE.domain} · DNS via Cloudflare</dd>
+        <dt>Editor</dt><dd>VS Code + Obsidian (for notes)</dd>
+        <dt>Source</dt><dd><a href={SITE.github}>github</a></dd>
+      </dl>
+    </section>
+
+    <section class="block">
+      <h2>thanks</h2>
+      <p>
+        网站的 <em>形状</em> 借鉴了 <a href="https://maggieappleton.com">Maggie Appleton</a>, <a href="https://andymatuschak.org">Andy Matuschak</a>, <a href="https://rauno.me">Rauno Freiberg</a>。 隐喻 (compost / tend, not publish / digital wood) 多半来自他们。
+      </p>
+      <p>
+        字体方向感谢 <a href="https://velvetyne.fr">Velvetyne</a> 把那么多奇怪好看的字做成开源。
+      </p>
+      <p>
+        如果你也想做一个 — <a href={`mailto:${SITE.email}`}>来一封信</a>, 我把这个 Astro 项目分享给你, 你也可以慢慢搭。
+      </p>
+    </section>
+
+    <section class="block">
+      <h2>license</h2>
+      <dl>
+        <dt>Content</dt><dd>CC BY-NC 4.0 · 转载请注明出处</dd>
+        <dt>Code</dt><dd>MIT · 拿去用</dd>
+        <dt>Type</dt><dd>各自的 OFL — 见上方链接</dd>
+      </dl>
+    </section>
+
+  </main>
+</Base>
+
+<style>
+  .crumb { padding: 24px 0 8px; display: flex; justify-content: space-between; font-family: var(--font-h); font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-3); }
+  .crumb a { color: inherit; text-decoration: none; }
+  .crumb b { color: var(--ink); font-weight: 500; }
+  .crumb .sep { color: var(--ink-4); margin: 0 6px; }
+
+  .head { max-width: 720px; margin: 0 auto; padding: 48px 0 36px; border-bottom: 1px solid var(--ink); margin-bottom: 48px; }
+  .head h1 { font-family: var(--font-display); font-weight: 400; font-style: italic; font-size: clamp(56px, 8vw, 108px); line-height: 0.92; letter-spacing: -0.025em; margin: 0 0 14px; }
+  .head h1 .dot { font-style: normal; color: var(--dye-tomato); }
+  .head .lead { font-family: var(--font-body); font-style: italic; font-size: 18px; color: var(--ink-2); margin: 0; max-width: 48ch; }
+
+  .block { max-width: 720px; margin: 0 auto 48px; }
+  .block h2 { font-family: var(--font-h); font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--dye-tomato); margin: 0 0 16px; font-weight: 600; padding-bottom: 8px; border-bottom: 1px dashed var(--rule); }
+  .block dl { display: grid; grid-template-columns: 160px 1fr; gap: 10px 24px; margin: 0; }
+  .block dt { font-family: var(--font-h); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); padding-top: 3px; }
+  .block dd { margin: 0; font-family: var(--font-body); font-size: 16px; line-height: 1.55; color: var(--ink); }
+  .block dd code { font-family: var(--font-mono); font-size: 12px; background: var(--paper-deep); padding: 0.1em 0.4em; border-radius: 2px; margin-left: 4px; }
+  .block dd .sw { display: inline-block; width: 14px; height: 14px; border-radius: 2px; vertical-align: middle; border: 1px solid var(--ink-3); margin-right: 4px; }
+  .block p { font-family: var(--font-body); font-size: 16px; line-height: 1.65; color: var(--ink); margin: 0 0 16px; }
+  .block p em { font-family: var(--font-display); font-style: italic; }
+
+  @media (max-width: 720px) {
+    .block dl { grid-template-columns: 1fr; }
+  }
+</style>

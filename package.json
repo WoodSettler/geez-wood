@@ -1,0 +1,21 @@
+{
+  "name": "geez-wood",
+  "type": "module",
+  "version": "0.1.0",
+  "description": "Ting's Geez Wood — a small, slow place online.",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/rss": "^4.0.9",
+    "@astrojs/sitemap": "3.2.1",
+    "astro": "^4.16.18"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

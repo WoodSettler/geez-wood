@@ -1,0 +1,163 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE } from '../site.config.js';
+---
+
+<Base current="about" title="about">
+  <main class="shell">
+
+    <div class="crumb">
+      <div>§ 06 · <b>about</b> · 关于这个人</div>
+      <div class="right">last revised · 2026·05 · ~ 5 min read</div>
+    </div>
+
+    <section class="about-hero">
+      <div class="wash-bg"></div>
+      <div class="lhs">
+        <h1>hello, i'm <span class="name">{SITE.name}</span><span class="dot">.</span></h1>
+        <p class="tagline">
+          一个 <b>慢的写作者</b>, 新晋的 <b>vibe-coder</b>, 对 ai 抱有 <i>克制的乐观</i> 的人。
+          这里是 <b>Geez Wood</b> — 不为发表, 只为照看。
+        </p>
+        <dl class="factsheet">
+          <dt>name</dt>      <dd>{SITE.name}</dd>
+          <dt>where</dt>     <dd>{SITE.location} · 一间小厨房改的工作室</dd>
+          <dt>doing</dt>     <dd><b>building</b> 小工具 · <b>writing</b> 不定期 · <b>tending</b> 这片林子</dd>
+          <dt>before</dt>    <dd>产品 / 工程 / 一段公务员</dd>
+          <dt>currently</dt> <dd>vibe-coding · ai · slow web · obsidian</dd>
+          <dt>not</dt>       <dd>web3 · growth-hack · "founder mode"</dd>
+        </dl>
+      </div>
+    </section>
+
+    <article class="essay">
+
+      <p class="dropcap">
+        我从工科本科一路做产品做了六年, 然后在 2024 年某个完全平常的周二下午, 关掉了 jira。 没什么戏剧性的故事 — 没有 quit-your-job 的爽文, 也没有突然顿悟。 只是开始觉得, 自己花最多时间做的事, 不是我想做的事。
+      </p>
+
+      <p>
+        辞职那天我做的第一件事, 是把 vscode 卸了, 装上了 claude desktop。 我想看看 — 如果我不再先从框架、工具、最佳实践开始, 而是从我 <em>想做的那个东西</em> 开始, ai 能不能托住我。
+      </p>
+
+      <p>
+        结果是: 它能, 也不能。 能托住小事, 托不住大事; 能托住 <em>说清楚的</em>, 托不住 <em>没想明白的</em>。 这件事比写代码本身有意思 — 它逼着我重新学习怎么把一个模糊的想法, 拆成可被理解的步骤。 我开始把这个过程叫做 <strong>vibe-coding</strong>, 听起来不严肃, 但它就是不严肃。
+      </p>
+
+      <blockquote>
+        prompt 是新的小提琴 — 谁都拉得响, 拉得好听是另一回事。
+      </blockquote>
+
+      <h2>what i'm trying to do here</h2>
+
+      <p>
+        这个站不是博客, 也不是 portfolio, 也不是 newsletter。 它更像一个 <em>有公开窗口的工作室</em> — 我在里面养笔记、试代码、写半成品。 如果你路过, 大概能看到我桌上摊着什么。
+      </p>
+
+      <p>
+        所以这里不追更新频率, 不堆 "我做了什么" 的产出。 一篇文章可能改半年才贴, 一条笔记可能永远是 <code>seedling</code>。 这是慢的, 也是我想要的。
+      </p>
+
+      <h2>three things i believe</h2>
+
+      <ol class="beliefs">
+        <li>
+          <b>半成品有价值。</b>
+          写作的废料是 <em>腐殖质</em>, 给下一篇文章松土。 删掉就什么都没了。 所以我不再删任何东西。
+        </li>
+        <li>
+          <b>ai 是新的笔记本, 不是新的同事。</b>
+          它最有用的不是替我做事, 是逼我说清楚我到底想做什么。
+        </li>
+        <li>
+          <b>小事比大事重要。</b>
+          一个能用的小工具 &gt; 一个永远做不完的大产品。 一封写给一个人的信 &gt; 一篇发给所有人的稿。
+        </li>
+      </ol>
+
+      <hr/>
+
+      <div class="signoff">
+        <div class="left">
+          <p>谢谢你读到这里。 这一页一年改一次。 如果有想说的, 不用客气 —</p>
+        </div>
+        <div class="signature">
+          {SITE.name}
+          <small>— 在小厨房, {SITE.location}, 2026</small>
+        </div>
+      </div>
+
+    </article>
+
+    <div class="onward">
+      <a href="/now">
+        <span class="eb">newer than this →</span>
+        <span class="t">what i'm doing now.</span>
+        <span class="d">这一页一年改一次。 /now 每月改, 更新鲜。</span>
+      </a>
+      <a href="/writing">
+        <span class="eb">read me →</span>
+        <span class="t">essays &amp; letters.</span>
+        <span class="d">想了解我的想法, 文章比 about 页好。</span>
+      </a>
+      <a href="/about/colophon">
+        <span class="eb">geek out →</span>
+        <span class="t">the colophon.</span>
+        <span class="d">字体、技术栈、致谢、为什么这个站长这样。</span>
+      </a>
+    </div>
+
+  </main>
+</Base>
+
+<style>
+  .crumb { padding: 24px 0 8px; display: flex; justify-content: space-between; font-family: var(--font-h); font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-3); }
+  .crumb b { color: var(--ink); font-weight: 500; }
+  .crumb .right { font-family: var(--font-mono); font-size: 11px; color: var(--ink-4); letter-spacing: 0.06em; }
+
+  .about-hero { padding: 56px 0 88px; position: relative; max-width: 920px; margin: 0 auto; }
+  .about-hero .wash-bg { position: absolute; right: -80px; top: 0; bottom: -40px; width: 60%; z-index: -1; filter: url(#dg-wc) blur(2px); opacity: 0.6; background: radial-gradient(50% 60% at 70% 30%, var(--sun-wash) 0%, transparent 70%), radial-gradient(60% 50% at 30% 70%, var(--sage-wash) 0%, transparent 70%); }
+  .about-hero h1 { font-family: var(--font-display); font-weight: 400; font-style: normal; font-size: clamp(56px, 8vw, 116px); line-height: 0.92; letter-spacing: -0.025em; margin: 0 0 26px; text-wrap: balance; color: var(--ink); }
+  .about-hero h1 .name { font-family: var(--font-sign); font-style: normal; color: var(--dye-tomato); font-size: 1.05em; letter-spacing: 0; padding: 0 4px; }
+  .about-hero h1 .dot { color: var(--dye-sun); }
+  .about-hero .tagline { font-family: var(--font-body); font-style: italic; font-size: 22px; line-height: 1.55; color: var(--ink-2); max-width: 44ch; margin: 0 0 36px; }
+  .about-hero .tagline b { font-style: normal; font-weight: 600; color: var(--ink); }
+  .about-hero .factsheet { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; font-family: var(--font-mono); font-size: 12px; color: var(--ink-2); line-height: 1.6; padding-top: 24px; border-top: 1px solid var(--ink); max-width: 50ch; }
+  .about-hero .factsheet dt { color: var(--ink-3); letter-spacing: 0.06em; text-transform: uppercase; font-size: 10px; align-self: center; }
+  .about-hero .factsheet dd { margin: 0; color: var(--ink); }
+  .about-hero .factsheet dd b { color: var(--dye-tomato); font-weight: 500; }
+
+  .essay { max-width: 720px; margin: 0 auto; padding: 32px 0; position: relative; }
+  .essay::before { content: ""; display: block; width: 80px; height: 1px; background: var(--ink-3); margin: 0 0 32px; }
+  .essay p { font-family: var(--font-body); font-size: 19px; line-height: 1.7; color: var(--ink); margin: 0 0 22px; }
+  .essay p em, .essay p i { font-family: var(--font-display); font-style: italic; font-size: 1.05em; }
+  .essay p strong { font-weight: 600; }
+  .essay p code { font-family: var(--font-mono); font-size: 0.88em; background: var(--paper-deep); padding: 0.1em 0.4em; border-radius: 2px; }
+  .essay p.dropcap::first-letter { font-family: var(--font-display); font-style: normal; font-size: 5em; line-height: 0.82; float: left; padding: 0.04em 0.12em 0 0; color: var(--dye-tomato); }
+  .essay h2 { font-family: var(--font-h); font-weight: 700; font-size: 22px; color: var(--ink); margin: 56px 0 18px; text-transform: lowercase; }
+  .essay h2::before { content: "§ "; color: var(--dye-tomato); font-family: var(--font-display); font-style: italic; font-weight: 400; margin-right: 4px; }
+  .essay blockquote { font-family: var(--font-display); font-style: normal; font-size: 32px; line-height: 1.25; color: var(--ink); border-left: 3px solid var(--dye-tomato); padding-left: 28px; margin: 40px 0; max-width: 28ch; }
+  .essay hr { border: 0; width: 80px; height: 1px; background: var(--ink-3); margin: 48px auto; }
+  .essay ol.beliefs { list-style: none; padding: 0; margin: 0 0 24px; counter-reset: belief; }
+  .essay ol.beliefs > li { counter-increment: belief; position: relative; padding: 18px 0 18px 56px; border-bottom: 1px solid var(--rule); font-family: var(--font-body); font-size: 17px; line-height: 1.6; color: var(--ink-2); }
+  .essay ol.beliefs > li:first-child { border-top: 1px solid var(--rule); }
+  .essay ol.beliefs > li::before { content: counter(belief, decimal-leading-zero); position: absolute; left: 0; top: 18px; font-family: var(--font-mono); font-size: 14px; color: var(--dye-tomato); }
+  .essay ol.beliefs > li b { display: block; font-family: var(--font-h); font-weight: 700; font-size: 17px; color: var(--ink); margin-bottom: 4px; }
+
+  .signoff { margin: 56px 0 0; padding: 32px 0 0; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: baseline; gap: 32px; }
+  .signoff .left p { font-family: var(--font-body); font-style: italic; font-size: 15px; line-height: 1.55; color: var(--ink-3); margin: 0; max-width: 32ch; }
+  .signoff .signature { font-family: var(--font-sign); font-size: 56px; line-height: 1; color: var(--dye-tomato); transform: rotate(-3deg); padding: 8px 0; }
+  .signoff .signature small { display: block; font-family: var(--font-h); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-3); transform: rotate(3deg); margin-top: 2px; font-weight: 500; }
+
+  .onward { max-width: 1100px; margin: 80px auto 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .onward a { display: flex; flex-direction: column; gap: 6px; padding: 24px 24px 22px; border: 1px solid var(--rule); background: var(--paper); text-decoration: none; transition: transform var(--dur-base), box-shadow var(--dur-base), border-color var(--dur-base); }
+  .onward a:hover { transform: translate(-2px, -2px); box-shadow: 4px 4px 0 var(--ink-3); border-color: var(--ink-3); }
+  .onward a .eb { font-family: var(--font-h); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--dye-tomato); }
+  .onward a .t { font-family: var(--font-display); font-style: italic; font-size: 28px; line-height: 1; color: var(--ink); margin: 4px 0 6px; }
+  .onward a .d { font-family: var(--font-body); font-style: italic; font-size: 14px; line-height: 1.5; color: var(--ink-3); }
+
+  @media (max-width: 760px) {
+    .signoff { flex-direction: column; gap: 20px; align-items: flex-start; }
+    .onward { grid-template-columns: 1fr; }
+  }
+</style>

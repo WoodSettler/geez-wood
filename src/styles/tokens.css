@@ -1,0 +1,104 @@
+/* ============================================================
+   Geez Wood · design tokens + base resets
+   Imported once via Base.astro <style is:global>
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300..700;1,8..60,300..700&family=JetBrains+Mono:wght@400;500&family=Caveat:wght@400;500;700&display=swap');
+
+/* ─── self-hosted Degheest faces ─────────────────────── */
+@font-face { font-family: 'Latitude'; src: url('/fonts/Latitude-Regular.woff2') format('woff2'); font-display: swap; }
+@font-face { font-family: 'Director'; src: url('/fonts/Director-Regular.woff2') format('woff2'); font-weight: 400; font-display: swap; }
+@font-face { font-family: 'Director'; src: url('/fonts/Director-Bold.woff2')    format('woff2'); font-weight: 700; font-display: swap; }
+@font-face { font-family: 'Louise';   src: url('/fonts/Louise-Regular.woff2')   format('woff2'); font-display: swap; }
+@font-face { font-family: 'Abordage'; src: url('/fonts/Abordage-Regular.woff2') format('woff2'); font-display: swap; }
+
+:root {
+  /* ─── paper & ink ───────────────────────────────── */
+  --paper:        #F4EEDF;
+  --paper-deep:   #EAE3CF;
+  --paper-soft:   #FBF7EC;
+  --ink:          #1A1612;
+  --ink-2:        #3A332B;
+  --ink-3:        #6B6357;
+  --ink-4:        #9C9385;
+  --rule:         #D8CFBA;
+  --rule-soft:    #E6DFCB;
+
+  /* ─── risograph dye palette ─────────────────────── */
+  --dye-tomato:   #E55A30;
+  --dye-sun:      #E8A33D;
+  --dye-rose:     #D4527A;
+  --dye-plum:     #6E3F75;
+  --dye-sage:     #87A684;
+  --dye-klein:    #002FA7;
+
+  --tomato-wash:  rgba(229, 90, 48, 0.18);
+  --sun-wash:     rgba(232, 163, 61, 0.22);
+  --sage-wash:    rgba(135, 166, 132, 0.22);
+  --plum-wash:    rgba(110, 63, 117, 0.18);
+  --rose-wash:    rgba(212, 82, 122, 0.18);
+
+  /* ─── type families ─────────────────────────────── */
+  --font-display: 'Latitude', 'Source Serif 4', Georgia, serif;
+  --font-h:       'Director', 'Inter', system-ui, sans-serif;
+  --font-body:    'Source Serif 4', Georgia, serif;
+  --font-card:    'Abordage', 'Director', sans-serif;
+  --font-sign:    'Louise', 'Caveat', 'Latitude', cursive;
+  --font-hand:    'Caveat', cursive;
+  --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+
+  /* ─── motion ────────────────────────────────────── */
+  --ease-out:  cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-soft: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --dur-base:  220ms;
+  --dur-slow:  420ms;
+}
+
+/* ─── reset + base ───────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--paper); color: var(--ink); }
+body {
+  font-family: var(--font-body);
+  font-size: 18px;
+  line-height: 1.55;
+  font-feature-settings: "kern", "liga", "onum";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+::selection { background: var(--sun-wash); color: var(--ink); }
+:focus-visible { outline: 2px solid var(--dye-tomato); outline-offset: 3px; border-radius: 2px; }
+
+a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--rule);
+  text-underline-offset: 0.22em;
+  text-decoration-thickness: 1px;
+  transition: color var(--dur-base), text-decoration-color var(--dur-base);
+}
+a:hover { color: var(--dye-tomato); text-decoration-color: currentColor; }
+
+/* ─── paper grain over everything ────────────────── */
+body::before {
+  content: "";
+  position: fixed; inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  background-image: url("/grain.png");
+  background-size: 220px 220px;
+  opacity: 0.20;
+  mix-blend-mode: multiply;
+}
+
+/* ─── shared shell wrapper ───────────────────────── */
+.shell {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 0 56px;
+  position: relative;
+}
+@media (max-width: 760px) {
+  .shell { padding: 0 28px; }
+}

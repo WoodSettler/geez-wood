@@ -1,0 +1,101 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+
+let allTags = new Set();
+const essays = await getCollection('essays', ({ data }) => !data.draft);
+const notes  = await getCollection('notes',  ({ data }) => !data.draft);
+essays.forEach(e => e.data.tags.forEach(t => allTags.add(t)));
+notes.forEach(n => n.data.tags.forEach(t => allTags.add(t)));
+
+const tagged = (tag) => ({
+  essays: essays.filter(e => e.data.tags.includes(tag)),
+  notes:  notes.filter(n => n.data.tags.includes(tag)),
+});
+
+const tag = Astro.params.tag;
+if (!tag || !allTags.has(tag)) {
+  return Astro.redirect('/404');
+}
+
+export async function getStaticPaths() {
+  const essays = await getCollection('essays', ({ data }) => !data.draft);
+  const notes  = await getCollection('notes',  ({ data }) => !data.draft);
+  const tags = new Set();
+  essays.forEach(e => e.data.tags.forEach(t => tags.add(t)));
+  notes.forEach(n => n.data.tags.forEach(t => tags.add(t)));
+  return [...tags].map(t => ({ params: { tag: t } }));
+}
+
+const { essays: te, notes: tn } = tagged(tag);
+const total = te.length + tn.length;
+---
+
+<Base title={`#${tag}`} description={`所有带 #${tag} 标签的内容`}>
+  <main class="shell">
+    <div class="crumb">
+      <div>tag · <b>#{tag}</b></div>
+      <div class="right">{total} item{total === 1 ? '' : 's'}</div>
+    </div>
+
+    <header class="head">
+      <h1>#<em>{tag}</em><span class="dot">.</span></h1>
+      <p class="lead">所有带这个标签的内容 — 文章和林中笔记混在一起。</p>
+    </header>
+
+    {te.length > 0 && (
+      <section class="block">
+        <h3>essays · {te.length}</h3>
+        <ul>
+          {te.map(e => (
+            <li>
+              <a href={`/writing/${e.slug}`}>
+                <span class="t">{e.data.title}</span>
+                {e.data.summary && <span class="d">{e.data.summary}</span>}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    {tn.length > 0 && (
+      <section class="block">
+        <h3>wood notes · {tn.length}</h3>
+        <ul>
+          {tn.map(n => (
+            <li>
+              <a href={`/wood/${n.slug}`}>
+                <span class={`stage ${n.data.stage}`}></span>
+                <span class="t">{n.data.title}</span>
+                {n.data.summary && <span class="d">{n.data.summary}</span>}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+  </main>
+</Base>
+
+<style>
+  .crumb { padding: 24px 0 8px; display: flex; justify-content: space-between; font-family: var(--font-h); font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-3); }
+  .crumb b { color: var(--ink); font-weight: 500; }
+  .crumb .right { font-family: var(--font-mono); font-size: 11px; color: var(--ink-4); letter-spacing: 0.06em; }
+  .head { padding: 36px 0 48px; }
+  .head h1 { font-family: var(--font-display); font-weight: 400; font-size: clamp(56px, 8vw, 120px); line-height: 0.9; margin: 0 0 14px; letter-spacing: -0.025em; }
+  .head h1 em { font-style: italic; color: var(--dye-tomato); }
+  .head h1 .dot { color: var(--dye-sun); }
+  .head .lead { font-family: var(--font-body); font-style: italic; font-size: 17px; color: var(--ink-2); margin: 0; max-width: 48ch; }
+  .block { margin-bottom: 56px; }
+  .block h3 { font-family: var(--font-h); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--dye-tomato); margin: 0 0 14px; font-weight: 600; padding-bottom: 8px; border-bottom: 1px solid var(--ink); }
+  .block ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; }
+  .block li a { display: grid; grid-template-columns: auto 1fr; gap: 10px; padding: 12px 16px; background: var(--paper-soft); border: 1px solid var(--rule); text-decoration: none; align-items: baseline; transition: border-color var(--dur-base); }
+  .block li a:hover { border-color: var(--ink); }
+  .block li a .t { font-family: var(--font-display); font-style: italic; font-size: 22px; color: var(--ink); grid-column: 2; }
+  .block li a .d { font-family: var(--font-body); font-style: italic; font-size: 14px; color: var(--ink-3); grid-column: 2; }
+  .block li a .stage { width: 8px; height: 8px; border-radius: 50%; align-self: center; }
+  .block li a .stage.seedling { background: var(--dye-sage); }
+  .block li a .stage.growing { background: var(--dye-sun); }
+  .block li a .stage.evergreen { background: var(--dye-tomato); }
+</style>
