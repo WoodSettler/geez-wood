@@ -63,7 +63,7 @@ Last updated: 2026·05 · v0.1 (Astro)
 | letter | `src/content/letters/*.md` | `number, title, date` | `/writing/letters/[n]` |
 | note (wood) | `src/content/notes/*.md` | `title, stage, lastWatered, tags, backlinks` | `/wood/[slug]` |
 | book | `src/content/books/*.json` | `title, author, status, rating, note` | `/collections/books/[id]` |
-| music | (in `books` collection extended, or separate) | `title, artist, status, why` | `/collections/listening/[id]` |
+| listening | `src/content/listening/*.json` | `title, artist, status, why, cover` | `/collections` (grid) · detail optional |
 | link | (in `books` collection extended, or separate) | `title, domain, why, saved` | (single page, no detail) |
 
 `type` for essay can be `essay | field | letter | project`.
@@ -123,6 +123,24 @@ tags:         [string]
 backlinks:    [string]
 draft:        boolean
 ```
+
+### listening  (`src/content/listening/*.json`)
+```yaml
+title:      string (required)   # 专辑 / 单曲 / 节目名
+artist:     string (required)   # 演出者 / 主播
+year:       number
+kind:       album | track | podcast (default: album)
+status:     loop | new | paused (default: new)   # 封面右上角徽标
+why:        string              # 一句心情/为什么在听
+cover:      string              # 真封面图, public-relative, e.g. /covers/listening/xxx.jpg
+coverTint:  t | s | u | p | n   # 无 cover 时的兜底水彩色块 (default: n)
+link:       string              # 点封面跳转的站内 URL (如关联的 essay)
+date:       date                # 加入日期, 用于排序
+```
+
+**封面约定:** `listening` 用**真封面图**(放 `public/covers/listening/`, 用 ascii 文件名);
+设计稿的"画框"(边框 + 硬投影 + 悬停抬起)保留, 真图填进框里。
+`book` 仍用 `coverTint` 抽象色块。两者刻意区分。
 
 ---
 

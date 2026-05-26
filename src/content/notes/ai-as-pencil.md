@@ -16,4 +16,4 @@ ai 最有用的不是替你做事, 是逼你说清楚。
 
 ---
 
-(这条已经长青了 — 它支撑了 [vibe-coding](/wood/vibe-coding), 也是 [ai 是新的笔记本](/writing/ai-是新的笔记本) 的种子。)
+(这条已经长青了 — 它支撑了 [vibe-coding](/wood/vibe-coding)。)

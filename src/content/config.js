@@ -65,4 +65,20 @@ const books = defineCollection({
   }),
 });
 
-export const collections = { essays, notes, letters, books };
+const listening = defineCollection({
+  type: 'data',
+  schema: z.object({
+    title:     z.string(),                                          // 专辑 / 单曲 / 节目名
+    artist:    z.string(),                                          // 演出者 / 主播
+    year:      z.number().optional(),
+    kind:      z.enum(['album', 'track', 'podcast']).default('album'),
+    status:    z.enum(['loop', 'new', 'paused']).default('new'),    // 封面右上角徽标
+    why:       z.string().optional(),                               // 一句心情
+    cover:     z.string().optional(),                               // 真封面图, public 相对路径
+    coverTint: z.enum(['t', 's', 'u', 'p', 'n']).default('n'),      // 无 cover 时的兜底色块
+    link:      z.string().optional(),                               // 点封面跳转的站内 URL (如关联 essay)
+    date:      z.coerce.date().optional(),                          // 加入日期, 用于排序
+  }),
+});
+
+export const collections = { essays, notes, letters, books, listening };

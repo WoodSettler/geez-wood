@@ -11,6 +11,15 @@ try {
   books = [];
 }
 
+// 在听 — 真封面网格, 按加入日期倒序
+let listening = [];
+try {
+  listening = await getCollection('listening');
+} catch (e) {
+  listening = [];
+}
+listening.sort((a, b) => (b.data.date?.valueOf() ?? 0) - (a.data.date?.valueOf() ?? 0));
+
 const byStatus = {
   reading:  books.filter(b => b.data.status === 'reading'),
   finished: books.filter(b => b.data.status === 'finished'),
@@ -104,10 +113,36 @@ const currentlyReading = byStatus.reading[0];
     )}
 
     <div class="section-divider">
-      <span class="kicker"><b>§ 04 · 02</b> · listening · coming soon</span>
+      <span class="kicker"><b>§ 04 · 02</b> · listening · {listening.length > 0 ? `${listening.length} 张` : 'coming soon'}</span>
       <h2>on <em class="plum">loop.</em></h2>
     </div>
-    <p class="todo">音乐和 podcast 的 collection 还在搭。 数据接到 <code>src/content/listening/</code> 后这里会自动渲染。</p>
+    {listening.length > 0 ? (
+      <section class="listening">
+        {listening.map(t => {
+          const inner = (
+            <>
+              <div class="art">
+                {t.data.cover
+                  ? <img src={t.data.cover} alt={`${t.data.title} — ${t.data.artist}`} loading="lazy" width="600" height="600" />
+                  : <div class={`swatch swatch-${t.data.coverTint}`}></div>}
+                <span class={`status ${t.data.status}`}>{t.data.status}</span>
+                {t.data.link && <span class="read-cue">读 →</span>}
+              </div>
+              <div class="track-body">
+                <span class="title">{t.data.title}</span>
+                <span class="artist">{t.data.artist}{t.data.year ? ` · ${t.data.year}` : ''}</span>
+                {t.data.why && <p class="why">{t.data.why}</p>}
+              </div>
+            </>
+          );
+          return t.data.link
+            ? <a class="track is-link" href={t.data.link}>{inner}</a>
+            : <div class="track">{inner}</div>;
+        })}
+      </section>
+    ) : (
+      <p class="todo">音乐和 podcast 的 collection 还在搭。 数据接到 <code>src/content/listening/</code> 后这里会自动渲染。</p>
+    )}
 
     <div class="section-divider">
       <span class="kicker"><b>§ 04 · 03</b> · links · coming soon</span>
@@ -188,15 +223,34 @@ const currentlyReading = byStatus.reading[0];
   .book .note-snippet { font-family: var(--font-body); font-style: italic; font-size: 13px; line-height: 1.4; color: var(--ink-3); padding-left: 10px; border-left: 2px solid var(--rule); margin: 0; }
   .book .note-snippet b { font-style: normal; color: var(--ink); font-weight: 500; }
 
+  /* listening — 画框 + 真封面 */
+  .listening { display: grid; grid-template-columns: repeat(4, 1fr); gap: 36px 28px; margin-bottom: 80px; }
+  .track { display: flex; flex-direction: column; gap: 10px; }
+  .track.is-link { text-decoration: none; color: inherit; }
+  .track .art { aspect-ratio: 1 / 1; border: 1.5px solid var(--ink); background: var(--paper-deep); position: relative; overflow: hidden; box-shadow: 0 6px 12px -6px rgba(58,51,43,0.25); transition: transform 400ms var(--ease-soft), box-shadow var(--dur-base); }
+  .track:hover .art { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--ink-2); }
+  .track .art .read-cue { position: absolute; left: 8px; bottom: 8px; font-family: var(--font-h); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 600; padding: 4px 9px; background: var(--ink); color: var(--paper); z-index: 2; opacity: 0; transform: translateY(4px); transition: opacity var(--dur-base), transform var(--dur-base); }
+  .track.is-link:hover .read-cue { opacity: 1; transform: translateY(0); }
+  .track.is-link:hover .title { text-decoration: underline; text-decoration-color: var(--dye-plum); text-underline-offset: 0.22em; }
+  .track .art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+  .track .art .swatch { position: absolute; inset: 0; opacity: 0.8; filter: url(#dg-wc) blur(2px); }
+  .track .art .status { position: absolute; top: 8px; right: 8px; font-family: var(--font-h); font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 600; padding: 3px 7px; background: var(--paper); border: 1px solid var(--ink-3); color: var(--ink); z-index: 2; }
+  .track .art .status.loop   { color: var(--dye-tomato); border-color: var(--dye-tomato); }
+  .track .art .status.new    { color: var(--dye-sun); border-color: var(--dye-sun); }
+  .track .art .status.paused { color: var(--ink-3); }
+  .track .title { font-family: var(--font-body); font-style: italic; font-size: 16px; line-height: 1.2; color: var(--ink); }
+  .track .artist { font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); letter-spacing: 0.04em; }
+  .track .why { font-family: var(--font-body); font-style: italic; font-size: 13px; line-height: 1.45; color: var(--ink-3); padding-left: 10px; border-left: 2px solid var(--rule); margin: 2px 0 0; }
+
   .todo { font-family: var(--font-body); font-style: italic; font-size: 15px; color: var(--ink-3); padding: 24px 0; margin: 0 0 56px; }
   .todo code { font-family: var(--font-mono); background: var(--paper-deep); padding: 0.1em 0.4em; border-radius: 2px; color: var(--ink); font-style: normal; }
 
-  @media (max-width: 1100px) { .books { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 1100px) { .books, .listening { grid-template-columns: repeat(3, 1fr); } }
   @media (max-width: 760px) {
     .head { grid-template-columns: 1fr; gap: 24px; }
     .head .rhs { border-left: 0; padding-left: 0; padding-top: 18px; border-top: 1px solid var(--ink); }
     .cr-feature { grid-template-columns: 1fr; padding: 28px; gap: 24px; }
     .cr-feature .cover { max-width: 180px; }
-    .books { grid-template-columns: repeat(2, 1fr); }
+    .books, .listening { grid-template-columns: repeat(2, 1fr); }
   }
 </style>
