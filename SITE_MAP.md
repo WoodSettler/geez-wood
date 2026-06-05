@@ -64,6 +64,7 @@ Last updated: 2026·05 · v0.1 (Astro)
 | note (wood) | `src/content/notes/*.md` | `title, stage, lastWatered, tags, backlinks` | `/wood/[slug]` |
 | book | `src/content/books/*.json` | `title, author, status, rating, note` | `/collections/books/[id]` |
 | listening | `src/content/listening/*.json` | `title, artist, status, why, cover` | `/collections` (grid) · detail optional |
+| page copy | `src/content/pages/*.md` | 固定页面文案 (YAML 头部 + markdown 正文); 各页字段见 `CONTENT.md` | 无独立 URL, 被对应 `.astro` 用 `getEntry('pages', ...)` 读取 |
 | link | (in `books` collection extended, or separate) | `title, domain, why, saved` | (single page, no detail) |
 
 `type` for essay can be `essay | field | letter | project`.

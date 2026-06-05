@@ -1,81 +1,78 @@
 ---
 import Base from '../layouts/Base.astro';
 import { SITE, FEATURES } from '../site.config.js';
+import { getEntry } from 'astro:content';
+
+// 页面文案 (可在 src/content/pages/contact.md 编辑)
+const page = (await getEntry('pages', 'contact')).data;
 ---
 
 <Base current="contact" title="contact">
   <main class="shell">
 
     <div class="crumb">
-      <div>§ 07 · <b>contact</b> · say hi · 寄一封信</div>
-      <div class="right">i read everything · 回得慢但会回</div>
+      <div set:html={page.crumb}></div>
+      <div class="right">{page.crumbRight}</div>
     </div>
 
     <section class="intro">
-      <h1>write <em>me</em><span class="dot">.</span></h1>
+      <h1 set:html={page.intro.title}></h1>
       <div class="rhs">
-        <p>
-          我读每一封信。 中英都可。 <b>回得慢但会回</b> — 平均 3–7 天, 偶尔 2 周。
-        </p>
+        <p set:html={page.intro.p}></p>
         <div class="reply-rate">
-          <div><b>4d</b><span>avg reply</span></div>
-          <div><b>97%</b><span>reply rate</span></div>
-          <div><b>0</b><span>auto-replies</span></div>
+          {page.replyRate.map(r => <div><b>{r.b}</b><span>{r.label}</span></div>)}
         </div>
       </div>
     </section>
 
     <section class="cta-card">
       <div class="lhs">
-        <div class="eb">℘ the easiest way</div>
-        <h2>just send an email.</h2>
-        <p>没有 captcha, 没有 newsletter trick, 没有 retargeting pixel。 直接 mailto 打开你的邮件客户端。</p>
+        <div class="eb">{page.cta.eb}</div>
+        <h2>{page.cta.h2}</h2>
+        <p>{page.cta.p}</p>
       </div>
       <a class="mailto" href={`mailto:${SITE.email}?subject=hi%20from%20${SITE.domain}`}>
         <span class="ico">✉</span>
         <span class="line1">{SITE.email}</span>
-        <span class="line2">open mail · 寄出 →</span>
+        <span class="line2">{page.cta.line2}</span>
       </a>
     </section>
 
     <div class="channels-divider">
-      <span class="kicker"><b>§ 07 · 02</b> · or · 其他几个角落</span>
-      <h2>find me <em>elsewhere.</em></h2>
+      <span class="kicker" set:html={page.channelsDivider.kicker}></span>
+      <h2 set:html={page.channelsDivider.h2}></h2>
     </div>
 
     <section class="channels">
       <a class="channel t" href={`mailto:${SITE.email}`}>
         <span class="glyph">@</span>
-        <span class="key">email · 最稳</span>
+        <span class="key">{page.channels.email.key}</span>
         <span class="val">{SITE.email}</span>
-        <span class="why">长内容、合作、私下事都走这里。 回得慢但一定会回。</span>
+        <span class="why">{page.channels.email.why}</span>
       </a>
       <a class="channel r" href="/writing/letters">
         <span class="glyph">℘</span>
-        <span class="key">letters · 月底寄出</span>
+        <span class="key">{page.channels.letters.key}</span>
         <span class="val">/writing/letters · monthly</span>
-        <span class="why">{FEATURES.lettersForm ? '订阅我的月度信。' : '订阅暂时关闭 — 直接 email 我留一个位。'}</span>
+        <span class="why">{FEATURES.lettersForm ? page.channels.letters.whyOn : page.channels.letters.whyOff}</span>
       </a>
       <a class="channel u" href="/rss.xml">
         <span class="glyph">↗</span>
-        <span class="key">rss · always on</span>
+        <span class="key">{page.channels.rss.key}</span>
         <span class="val">/rss.xml</span>
-        <span class="why">不想用 email 就用 rss。 wood 也有独立的 feed。</span>
+        <span class="why">{page.channels.rss.why}</span>
       </a>
       <a class="channel s" href={SITE.github}>
         <span class="glyph">§</span>
-        <span class="key">github · 代码这块</span>
+        <span class="key">{page.channels.github.key}</span>
         <span class="val">{SITE.github.replace('https://', '')}</span>
-        <span class="why">看几个能跑的小东西。 issue 比 email 更适合 bug。</span>
+        <span class="why">{page.channels.github.why}</span>
       </a>
     </section>
 
     <div class="response">
       <div class="left">
-        <p>
-          我读 <b>每一封</b> 信, 哪怕只有 "hi" 两个字。 但我回得慢 — 一般 <b>3–7 天</b>, 有时候更久。
-          如果一周后没回, 大概率是我已经写了一封, 没寄出去 — 再戳我一次就好。
-        </p>
+        <p set:html={page.responseP}></p>
       </div>
       <div class="right">
         thanks,<br/>

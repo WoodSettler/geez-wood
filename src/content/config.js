@@ -81,4 +81,12 @@ const listening = defineCollection({
   }),
 });
 
-export const collections = { essays, notes, letters, books, listening };
+// 固定页面的文案层 — 把写死在 .astro 里的文案搬到 src/content/pages/*.md。
+// 各页字段形状不同, 故 schema 宽松 (passthrough); 具体形状由各自的 .astro 模板消费。
+// 含内联格式 (<b>/<a>/<em>) 的字段用字符串存原样, 模板里 set:html 渲染。
+const pages = defineCollection({
+  type: 'content',
+  schema: z.object({}).passthrough(),
+});
+
+export const collections = { essays, notes, letters, books, listening, pages };

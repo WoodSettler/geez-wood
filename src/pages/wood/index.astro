@@ -1,6 +1,9 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { getCollection } from 'astro:content';
+import { getCollection, getEntry } from 'astro:content';
+
+// 页面文案 (可在 src/content/pages/wood.md 编辑)
+const page = (await getEntry('pages', 'wood')).data;
 
 const notes = await getCollection('notes', ({ data }) => !data.draft);
 
@@ -84,15 +87,13 @@ Object.keys(adj).forEach(k => { clientAdj[k] = [...adj[k]]; });
   <main class="shell">
 
     <div class="crumb">
-      <div><b>橘子林</b></div>
+      <div set:html={page.crumb}></div>
       <div class="right">{total} notes · last watered {recent[0] ? ago(recent[0].data.lastWatered) : '—'} ago</div>
     </div>
 
     <header class="wood-head">
-      <h1>everything <span class="alt">is</span> connected<span class="dot">.</span></h1>
-      <p class="blurb">
-        你跳过木桩子吗？这是我所有笔记的图谱。我是个三心二意的人，我的想法总是跳来跳去
-      </p>
+      <h1 set:html={page.headTitle}></h1>
+      <p class="blurb" set:html={page.blurb}></p>
     </header>
 
     <div class="toolbar">

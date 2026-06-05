@@ -1,6 +1,12 @@
 ---
 import Base from '../layouts/Base.astro';
 import { SITE } from '../site.config.js';
+import { getEntry } from 'astro:content';
+
+// 页面文案 (可在 src/content/pages/about.md 编辑; 正文随笔即该文件正文区)
+const entry = await getEntry('pages', 'about');
+const page = entry.data;
+const { Content } = await entry.render();
 ---
 
 <Base current="about" title="about">
@@ -13,115 +19,57 @@ import { SITE } from '../site.config.js';
 
     <section class="about-hero">
       <div class="wash-bg"></div>
-      <h1>hello, i'm <span class="name">{SITE.name}</span><span class="dot">.</span></h1>
+      <h1>{page.heroGreeting} <span class="name">{SITE.name}</span><span class="dot">.</span></h1>
       <div class="lhs">
-        <p class="tagline">
-          一个 <b>零技术builder</b>, 文科背景，从事的行业跟AI也毫无关系。
-        </p>
-        <p class="tagline">
-          生成式AI的出现给了我创作和实现的刷子。我想这跟如今已位列名人堂的那些名字当初接触到互联网和编程是一样的。
-        </p>
-        <p class="tagline">
-          如饥似渴是一种多么宝贵而神奇的状态。
-        </p>
+        {page.taglines.map(t => <p class="tagline" set:html={t}></p>)}
         <dl class="factsheet">
-          <dt>name</dt>      <dd>{SITE.name}</dd>
-          <dt>where</dt>     <dd>{SITE.location} · 一个老楼步梯顶层</dd>
-          <dt>doing</dt>     <dd><b>building</b> 小工具 · <b>writing</b> 不定期 · <b>tending</b> 这片林子</dd>
-          <dt>before</dt>    <dd>博览会 / 贸易展 /</dd>
-          <dt>currently</dt> <dd>vibe-coding · ai 项目管理 · ai 教程</dd>
+          {page.factsheet.map(row => (
+            <Fragment>
+              <dt>{row.dt}</dt>
+              <dd set:html={row.dd.replace('{name}', SITE.name).replace('{location}', SITE.location)}></dd>
+            </Fragment>
+          ))}
         </dl>
       </div>
 
       <aside class="rhs">
-        <blockquote class="hero-quote">
-          "Keep Looking, Don't Settle"<br/><br/>
-          "Stay Hungry, Stay Foolish"
-        </blockquote>
-        <small class="quote-source">这是乔布斯对很多学生说的话。</small>
+        <blockquote class="hero-quote" set:html={page.heroQuote}></blockquote>
+        <small class="quote-source">{page.quoteSource}</small>
       </aside>
     </section>
 
     <article class="essay">
 
-      <p class="dropcap">
-        拥有自己的个人网站是一件奢侈的事情。至少，对大多数人来说，对一两年前的我来说，是这样的。倘若要恰当地介绍自己，我仍然不知该如何对我的现状进行身份归纳。vibe coder？vibe designer？我感觉我远远没达到那么远的地方。非要说的话，我需要一连串形容词，一个认真的、充满热情的、年轻的、废寝忘食的AI User。
-      </p>
-
-      <p>
-        一切始于2023年。大约9月我知道了Chatgpt，并一路订阅至2026年。彼时我在广州，刚从北京辞职，从6月一直gap着，一直到24年2月重新上工。
-      </p>
-
-      <p>
-        在那几个月里我用GPT和Mid journey做了一些无聊有趣的事情。我想每天看一个全球任意城市，看城市面貌，听那个城市有关的音乐。于是用GPT每天抽城市、生成季节和时辰不同的多段提示词、去midjourney中生成图片、然后用GPT推荐的音乐，凑到一块发抖音。每天一个小时，坚持到我的midjourney被停用。
-      </p>
-
-      <p>
-        另一个里程碑是去年的10月左右吧，我在网页的窗口中乐此不疲地复制粘贴，试图帮我自己开发一些自动化的工具。当时我既不懂context，也不懂IDE，在无限的本地试运行和请GPT老师诊断的复制粘贴中把窗口撑爆 ，但还是一次次喜不自胜地成功跑通了很多小小的不值一提的工具。直到最新里程碑，今年4月我开始使用了Claude，然后是Claude Code，嗯，everything changed.
-      </p>
-
-      <h2>what i'm trying to do here</h2>
-
-      <p>其实就是一个广义的日记吧。</p>
-
-      <p>
-        小红书、公众号、抖音，记录、创作、表达，不管形式如何，它们总在服务同一种motivation。
-      </p>
-
-      <p>
-        也许我未来也会放到这些平台，所以我把这个网站作为一切的True Source。
-      </p>
-
-      <p>
-        更重要的是，这里可以有逸散的念头，半途而废的志愿，或者有不需要意义的想法，而不必一直是精心打磨的作品。而且，载体多元，哈哈，啥都能弄。
-      </p>
-
-      <h2>three things i believe</h2>
+      <Content />
 
       <ol class="beliefs">
-        <li>
-          <b>半成品有价值。</b>
-          写作的废料是 <em>腐殖质</em>, 给下一篇文章松土。 删掉就什么都没了。 所以我不再删任何东西。（这是建站的时候 claude 自己写的）
-        </li>
-        <li>
-          <b>ai 代你做事，但要帮你思考。</b>
-          解决了脏活之后的问题是，你有喜欢的活吗？
-        </li>
-        <li>
-          <b>小事比大事重要。</b>
-          如果终将有一个世界能容纳无限的创意和实现，无数微不足道的小模块会帮助你抵达它。
-        </li>
+        {page.beliefs.map(it => (
+          <li><b>{it.title}</b> <Fragment set:html={it.body} /></li>
+        ))}
       </ol>
 
       <hr/>
 
       <div class="signoff">
         <div class="left">
-          <p>谢谢你读到这里。 也许它将就此沉底。 如果有想说的, 不用客气 —</p>
+          <p>{page.signoff.left}</p>
         </div>
         <div class="signature">
           {SITE.name}
-          <small>— 在办公室假装工作, {SITE.location}, 2026</small>
+          <small>{page.signoff.sigSmall.replace('{location}', SITE.location)}</small>
         </div>
       </div>
 
     </article>
 
     <div class="onward">
-      <a href="/now">
-        <span class="eb">newer than this →</span>
-        <span class="t">what i'm doing now.</span>
-      </a>
-      <a href="/writing">
-        <span class="eb">read me →</span>
-        <span class="t">essays &amp; letters.</span>
-        <span class="d">想了解我的想法？</span>
-      </a>
-      <a href="/about/colophon">
-        <span class="eb">geek out →</span>
-        <span class="t">the colophon.</span>
-        <span class="d">字体、技术栈、致谢、为什么这个站长这样。</span>
-      </a>
+      {page.onward.map(o => (
+        <a href={o.href}>
+          <span class="eb">{o.eb}</span>
+          <span class="t">{o.t}</span>
+          {o.d && <span class="d">{o.d}</span>}
+        </a>
+      ))}
     </div>
 
   </main>
@@ -150,13 +98,13 @@ import { SITE } from '../site.config.js';
 
   .essay { max-width: 720px; margin: 0 auto; padding: 32px 0; position: relative; }
   .essay::before { content: ""; display: block; width: 80px; height: 1px; background: var(--ink-3); margin: 0 0 32px; }
-  .essay p { font-family: var(--font-body); font-size: 19px; line-height: 1.7; color: var(--ink); margin: 0 0 22px; }
-  .essay p em, .essay p i { font-family: var(--font-display); font-style: italic; font-size: 1.05em; }
-  .essay p strong { font-weight: 600; }
-  .essay p code { font-family: var(--font-mono); font-size: 0.88em; background: var(--paper-deep); padding: 0.1em 0.4em; border-radius: 2px; }
-  .essay p.dropcap::first-letter { font-family: var(--font-display); font-style: normal; font-size: 5em; line-height: 0.82; float: left; padding: 0.04em 0.12em 0 0; color: var(--dye-tomato); }
-  .essay h2 { font-family: var(--font-h); font-weight: 700; font-size: 22px; color: var(--ink); margin: 56px 0 18px; text-transform: lowercase; }
-  .essay h2::before { content: "§ "; color: var(--dye-tomato); font-family: var(--font-display); font-style: italic; font-weight: 400; margin-right: 4px; }
+  .essay :global(p) { font-family: var(--font-body); font-size: 19px; line-height: 1.7; color: var(--ink); margin: 0 0 22px; }
+  .essay :global(p em), .essay :global(p i) { font-family: var(--font-display); font-style: italic; font-size: 1.05em; }
+  .essay :global(p strong) { font-weight: 600; }
+  .essay :global(p code) { font-family: var(--font-mono); font-size: 0.88em; background: var(--paper-deep); padding: 0.1em 0.4em; border-radius: 2px; }
+  .essay :global(p:first-of-type)::first-letter { font-family: var(--font-display); font-style: normal; font-size: 5em; line-height: 0.82; float: left; padding: 0.04em 0.12em 0 0; color: var(--dye-tomato); }
+  .essay :global(h2) { font-family: var(--font-h); font-weight: 700; font-size: 22px; color: var(--ink); margin: 56px 0 18px; text-transform: lowercase; }
+  .essay :global(h2)::before { content: "§ "; color: var(--dye-tomato); font-family: var(--font-display); font-style: italic; font-weight: 400; margin-right: 4px; }
   .essay blockquote { font-family: var(--font-display); font-style: normal; font-size: 32px; line-height: 1.25; color: var(--ink); border-left: 3px solid var(--dye-tomato); padding-left: 28px; margin: 40px 0; max-width: 28ch; }
   .essay hr { border: 0; width: 80px; height: 1px; background: var(--ink-3); margin: 48px auto; }
   .essay ol.beliefs { list-style: none; padding: 0; margin: 0 0 24px; counter-reset: belief; }

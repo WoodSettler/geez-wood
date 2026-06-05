@@ -1,7 +1,10 @@
 ---
 import Base from '../layouts/Base.astro';
 import { SITE, FEATURES } from '../site.config.js';
-import { getCollection } from 'astro:content';
+import { getCollection, getEntry } from 'astro:content';
+
+// 页面文案 (可在 src/content/pages/home.md 编辑)
+const page = (await getEntry('pages', 'home')).data;
 
 // ─── data ────────────────────────────────────────────
 const allEssays = await getCollection('essays', ({ data }) => !data.draft);
@@ -39,29 +42,27 @@ const ago = (d) => {
 
       <div class="meta-row">
         <span>since <b>{SITE.foundedYear}</b></span>
-        <span>· summer</span>
+        <span>· {page.hero.season}</span>
         <span>· {SITE.location}</span>
       </div>
 
       <h1>
-        Welcome to my<br/>
-        <span class="l2">wood of thoughts</span>
-        <span class="l3">Wanderer<span class="dot">.</span></span>
+        {page.hero.line1}<br/>
+        <span class="l2">{page.hero.line2}</span>
+        <span class="l3">{page.hero.line3}<span class="dot">.</span></span>
       </h1>
 
-      <p class="manifesto">
-        每个人的心中都有一片林子，林中有迷思之雾，有逃逸之风，也许有半熟的果子，或者刚种的苗。欢迎进入我的<b>橘子林</b>。
-      </p>
+      <p class="manifesto" set:html={page.hero.manifesto}></p>
 
       <div class="cta">
         {featured && (
-          <a class="primary" href={`/writing/${featured.slug}`}>↗ 读最新一篇</a>
+          <a class="primary" href={`/writing/${featured.slug}`}>{page.hero.ctaPrimary}</a>
         )}
-        <a class="ghost" href="/wood">※ 在林子里逛逛</a>
-        <a class="ghost" href="/now">· 我现在在做什么</a>
+        <a class="ghost" href="/wood">{page.hero.ctaWood}</a>
+        <a class="ghost" href="/now">{page.hero.ctaNow}</a>
       </div>
 
-      <div class="scroll-hint">scroll · 继续往下</div>
+      <div class="scroll-hint">{page.hero.scrollHint}</div>
     </section>
 
     <!-- ============================================================
@@ -70,9 +71,9 @@ const ago = (d) => {
     {featured && (
       <section class="featured-sec">
         <div class="sec-head">
-          <div class="kicker"><b>§ 01</b> · this week · 本周一篇</div>
-          <h2><em>featured.</em></h2>
-          <a class="more" href="/writing">all writing</a>
+          <div class="kicker" set:html={page.featured.kicker}></div>
+          <h2 set:html={page.featured.heading}></h2>
+          <a class="more" href="/writing">{page.featured.more}</a>
         </div>
 
         <div class="featured">
@@ -111,13 +112,13 @@ const ago = (d) => {
     <section class="wood-glimpse">
       <div class="inner">
         <div class="sec-head" style="border-bottom-color: var(--ink);">
-          <div class="kicker"><b>§ 02</b> · what's growing · 林子近况</div>
-          <h2>from the <em style="color: var(--dye-sage);">wood.</em></h2>
-          <a class="more" href="/wood">enter the wood</a>
+          <div class="kicker" set:html={page.woodGlimpse.kicker}></div>
+          <h2 set:html={page.woodGlimpse.heading}></h2>
+          <a class="more" href="/wood">{page.woodGlimpse.more}</a>
         </div>
 
         {recentNotes.length === 0 ? (
-          <p class="empty">还没有笔记 — 写一条放进 <code>src/content/notes/</code></p>
+          <p class="empty" set:html={page.woodGlimpse.empty}></p>
         ) : (
           <div class="notes">
             {recentNotes.map(n => (
@@ -147,37 +148,37 @@ const ago = (d) => {
          ============================================================ -->
     <section class="now-sec">
       <div class="sec-head">
-        <div class="kicker"><b>§ 03</b> · /now · this week</div>
-        <h2>currently <em>tending.</em></h2>
-        <a class="more" href="/now">full /now</a>
+        <div class="kicker" set:html={page.nowSec.kicker}></div>
+        <h2 set:html={page.nowSec.heading}></h2>
+        <a class="more" href="/now">{page.nowSec.more}</a>
       </div>
 
       <div class="now-strip">
         <div class="lead">
-          <div class="eb">snapshot · 2026·05</div>
-          <div class="t">four corners.</div>
+          <div class="eb">{page.nowSec.snapshot}</div>
+          <div class="t">{page.nowSec.lead}</div>
         </div>
 
         <div class="facets">
           <div class="facet do">
-            <div class="label"><span class="g">✎</span><span>在做</span></div>
-            <div class="body">把这个网站从设计稿变成 Astro 项目</div>
+            <div class="label"><span class="g">✎</span><span>{page.nowStrip.do.label}</span></div>
+            <div class="body" set:html={page.nowStrip.do.body}></div>
           </div>
           <div class="facet read">
-            <div class="label"><span class="g">§</span><span>在读</span></div>
-            <div class="body">《伊万伊里奇之死》 关于死亡</div>
+            <div class="label"><span class="g">§</span><span>{page.nowStrip.read.label}</span></div>
+            <div class="body" set:html={page.nowStrip.read.body}></div>
           </div>
           <div class="facet hear">
-            <div class="label"><span class="g">♪</span><span>在听</span></div>
-            <div class="body">声音玩具 · 爱是昂贵的 · Motorama</div>
+            <div class="label"><span class="g">♪</span><span>{page.nowStrip.hear.label}</span></div>
+            <div class="body" set:html={page.nowStrip.hear.body}></div>
           </div>
           <div class="facet think">
-            <div class="label"><span class="g">※</span><span>在想</span></div>
-            <div class="body">脑袋空空</div>
+            <div class="label"><span class="g">※</span><span>{page.nowStrip.think.label}</span></div>
+            <div class="body" set:html={page.nowStrip.think.body}></div>
           </div>
         </div>
 
-        <a class="more" href="/now">see more</a>
+        <a class="more" href="/now">{page.nowSec.seeMore}</a>
       </div>
     </section>
 

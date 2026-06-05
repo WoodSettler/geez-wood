@@ -1,7 +1,10 @@
 ---
 import Base from '../../layouts/Base.astro';
 import { SITE } from '../../site.config.js';
-import { getCollection } from 'astro:content';
+import { getCollection, getEntry } from 'astro:content';
+
+// 页面文案 (可在 src/content/pages/writing.md 编辑)
+const page = (await getEntry('pages', 'writing')).data;
 
 // ─── data ────────────────────────────────────────────
 const essays = (await getCollection('essays', ({ data }) => !data.draft))
@@ -26,17 +29,15 @@ const stamps = { essay: '¶ essay', field: '▾ field note', project: '◇ proje
   <main class="shell">
 
     <div class="crumb">
-      <div>§ 02 · <b>writing</b> · 文章 &amp; field notes</div>
+      <div set:html={page.crumb}></div>
       <div class="right">{essays.length} pieces · since {SITE.foundedYear}</div>
     </div>
 
     <header class="writing-head">
       <h1>writing<span class="dot">.</span></h1>
       <div class="rhs">
-        <div class="eb">essays · field notes · letters</div>
-        <p>
-          已经写完、愿意公开的长内容。 每篇至少改过几遍 — 没改完的, 还在 <a href="/wood">wood</a> 里浇水。
-        </p>
+        <div class="eb">{page.masthead.eb}</div>
+        <p set:html={page.masthead.introP}></p>
         <div class="stats">
           {Object.entries(counts).map(([t, n]) => (
             <div><b>{n}</b><span>{typeLabel[t] || t}</span></div>
@@ -99,7 +100,7 @@ const stamps = { essay: '¶ essay', field: '▾ field note', project: '◇ proje
     )}
 
     {essays.length === 0 && (
-      <p class="empty">还没有文章 — 写一篇放进 <code>src/content/essays/</code>。</p>
+      <p class="empty" set:html={page.empty}></p>
     )}
 
   </main>

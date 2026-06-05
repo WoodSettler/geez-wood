@@ -1,7 +1,10 @@
 ---
 import Base from '../layouts/Base.astro';
 import { SITE } from '../site.config.js';
-import { getCollection } from 'astro:content';
+import { getCollection, getEntry } from 'astro:content';
+
+// 页面文案 (可在 src/content/pages/now.md 编辑)
+const page = (await getEntry('pages', 'now')).data;
 
 const recentEssays = (await getCollection('essays', ({ data }) => !data.draft))
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
@@ -19,58 +22,46 @@ const yyyymm = today.toLocaleDateString('en-CA').slice(0, 7).replace('-', '·');
   <main class="shell">
 
     <div class="crumb">
-      <div>§ 05 · <b>now</b> · 我现在在做什么</div>
+      <div set:html={page.crumb}></div>
       <div class="right">updated · {yyyymm} · {SITE.location}</div>
     </div>
 
     <header class="head">
-      <h1>currently <em>tending</em><span class="dot">.</span></h1>
-      <p class="lead">
-        这一页每月手动更新一次, 比 <a href="/about">about</a> 新鲜, 比 <a href="/writing">writing</a> 轻。
-        想知道我这阵子在干嘛, 看这里。
-      </p>
+      <h1 set:html={page.head.title}></h1>
+      <p class="lead" set:html={page.head.lead}></p>
     </header>
 
     <section class="facets">
       <div class="facet do">
         <div class="head">
-          <div class="label"><span class="g">✎</span><span>在做</span></div>
-          <span class="eb">building</span>
+          <div class="label"><span class="g">✎</span><span>{page.facets.do.label}</span></div>
+          <span class="eb">{page.facets.do.eb}</span>
         </div>
-        <ul>
-          <li>把这个网站从设计稿变成 Astro 项目</li>
-        </ul>
+        <ul>{page.facets.do.items.map(i => <li set:html={i}></li>)}</ul>
       </div>
 
       <div class="facet read">
         <div class="head">
-          <div class="label"><span class="g">§</span><span>在读</span></div>
-          <span class="eb">reading</span>
+          <div class="label"><span class="g">§</span><span>{page.facets.read.label}</span></div>
+          <span class="eb">{page.facets.read.eb}</span>
         </div>
-        <ul>
-          <li>《伊万伊里奇之死》 关于死亡</li>
-        </ul>
+        <ul>{page.facets.read.items.map(i => <li set:html={i}></li>)}</ul>
       </div>
 
       <div class="facet hear">
         <div class="head">
-          <div class="label"><span class="g">♪</span><span>在听</span></div>
-          <span class="eb">listening</span>
+          <div class="label"><span class="g">♪</span><span>{page.facets.hear.label}</span></div>
+          <span class="eb">{page.facets.hear.eb}</span>
         </div>
-        <ul>
-          <li>声音玩具 · 爱是昂贵的 · 2015 旧专重听</li>
-          <li>Motorama 后朋克（但本人称并不是）</li>
-        </ul>
+        <ul>{page.facets.hear.items.map(i => <li set:html={i}></li>)}</ul>
       </div>
 
       <div class="facet think">
         <div class="head">
-          <div class="label"><span class="g">※</span><span>在想</span></div>
-          <span class="eb">thinking</span>
+          <div class="label"><span class="g">※</span><span>{page.facets.think.label}</span></div>
+          <span class="eb">{page.facets.think.eb}</span>
         </div>
-        <ul>
-          <li>脑袋空空</li>
-        </ul>
+        <ul>{page.facets.think.items.map(i => <li set:html={i}></li>)}</ul>
       </div>
     </section>
 
@@ -96,10 +87,7 @@ const yyyymm = today.toLocaleDateString('en-CA').slice(0, 7).replace('-', '·');
     </section>
 
     <div class="footer-line">
-      <p>
-        最近一次更新 <b>{yyyymm}</b>。
-        想知道更细的, 去 <a href="/wood">wood</a> 看半成品笔记, 或者 <a href="/contact">寄一封信</a>。
-      </p>
+      <p set:html={page.footer.replace('{date}', yyyymm)}></p>
     </div>
 
   </main>

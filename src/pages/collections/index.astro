@@ -1,7 +1,10 @@
 ---
 import Base from '../../layouts/Base.astro';
 import { SITE } from '../../site.config.js';
-import { getCollection } from 'astro:content';
+import { getCollection, getEntry } from 'astro:content';
+
+// 页面文案 (可在 src/content/pages/collections.md 编辑)
+const page = (await getEntry('pages', 'collections')).data;
 
 // Books from data collection — render only if user has added some
 let books = [];
@@ -33,18 +36,15 @@ const currentlyReading = byStatus.reading[0];
   <main class="shell">
 
     <div class="crumb">
-      <div>§ 04 · <b>collections</b> · 在读 · 在听 · 在收</div>
+      <div set:html={page.crumb}></div>
       <div class="right">{books.length} books</div>
     </div>
 
     <header class="head">
-      <h1>the <em>shelves</em><span class="dot">.</span></h1>
+      <h1 set:html={page.head.title}></h1>
       <div class="rhs">
-        <div class="eb">books · listening · links</div>
-        <p>
-          桌上、耳机里、浏览器里的东西。 <b>不是推荐</b> — 是日记。
-          书带着 <b>状态</b>, 唱片带着 <b>心情</b>, 链接带着 <b>一句话评注</b>。
-        </p>
+        <div class="eb">{page.head.eb}</div>
+        <p set:html={page.head.p}></p>
       </div>
     </header>
 
@@ -88,7 +88,7 @@ const currentlyReading = byStatus.reading[0];
       <>
         <div class="section-divider">
           <span class="kicker"><b>§ 04 · 01</b> · books · {books.length} 总</span>
-          <h2>on the <em class="tomato">shelf.</em></h2>
+          <h2 set:html={page.sections.books}></h2>
         </div>
         <section class="books">
           {books.map(b => (
@@ -114,7 +114,7 @@ const currentlyReading = byStatus.reading[0];
 
     <div class="section-divider">
       <span class="kicker"><b>§ 04 · 02</b> · listening · {listening.length > 0 ? `${listening.length} 张` : 'coming soon'}</span>
-      <h2>on <em class="plum">loop.</em></h2>
+      <h2 set:html={page.sections.listening}></h2>
     </div>
     {listening.length > 0 ? (
       <section class="listening">
@@ -141,14 +141,14 @@ const currentlyReading = byStatus.reading[0];
         })}
       </section>
     ) : (
-      <p class="todo">音乐和 podcast 的 collection 还在搭。 数据接到 <code>src/content/listening/</code> 后这里会自动渲染。</p>
+      <p class="todo" set:html={page.listeningTodo}></p>
     )}
 
     <div class="section-divider">
       <span class="kicker"><b>§ 04 · 03</b> · links · coming soon</span>
-      <h2>worth your <em class="sage">click.</em></h2>
+      <h2 set:html={page.sections.links}></h2>
     </div>
-    <p class="todo">收藏链接的 collection 还在搭。 数据接到 <code>src/content/links/</code> 后这里会自动渲染。</p>
+    <p class="todo" set:html={page.linksTodo}></p>
 
   </main>
 </Base>
