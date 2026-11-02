@@ -1,0 +1,24 @@
+/* Digital Garden 简化版：只保留纸色底、墨色字、番茄红强调、Director 标题字与纸纹。
+   不用水彩晕染、动效、印章、签名等装饰。 */
+@font-face{font-family:"Director";src:url("Director-Regular.woff2") format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:"Director";src:url("Director-Bold.woff2") format("woff2");font-weight:700;font-display:swap}
+:root{
+  --bg:#F4EEDF;--surface:#FBF7EC;--fg:#1A1612;--fg-2:#3A332B;--muted:#6B6357;--line:#D8CFBA;
+  --accent:#B9441F;--accent-fg:#FBF7EC;--accent-soft:rgba(229,90,48,.14);
+  --head-bg:#F4EEDF;
+  --font-head:"PingFang SC","Microsoft YaHei","Noto Sans SC",system-ui,sans-serif;
+  --font-meta:"PingFang SC","Microsoft YaHei","Noto Sans SC",system-ui,sans-serif;
+  --font-body:Georgia,"Noto Serif SC","Source Han Serif SC","Songti SC","SimSun",serif;
+  --r-card:4px;--r-chip:999px;--shadow:0 1px 0 rgba(26,22,18,.04),0 1px 2px rgba(26,22,18,.05);--w-head:700;
+}
+/* 纸纹做成极淡的覆盖层，只给质感，不干扰阅读 */
+.t-garden::before{content:"";position:fixed;inset:0;background:url("grain.png");opacity:.18;mix-blend-mode:multiply;pointer-events:none;z-index:100}
+/* Director 只用在品牌字标和眉题这类纯英文位置 */
+.t-garden .brand-name,.t-garden .eyebrow{font-family:"Director",var(--font-meta)}
+.t-garden .hero .dek{color:var(--fg-2)}
+.t-garden ::selection{background:rgba(232,163,61,.3)}
+.t-garden .eyebrow{letter-spacing:.14em}
+.t-garden .b-quote{border-left-color:#E55A30}
+.t-garden .b-keypoints li::before{color:#E55A30}
+.t-garden .b-stats .stat-v{color:#E55A30}
+.t-garden .brand-logo{height:26px}

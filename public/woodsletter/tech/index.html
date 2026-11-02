@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>果蔬科技 · woodsletter</title>
+<meta name="description" content="woodsletter · 行业信息简报">
+<link rel="stylesheet" href="/woodsletter/_assets/base.css">
+<link rel="stylesheet" href="/woodsletter/_assets/freshtech/theme.css">
+</head>
+<body class="t-freshtech">
+<header class="site-head">
+  <div class="wrap head-row">
+    <a class="brand" href="/woodsletter/tech/">
+<img class="brand-logo" src="/woodsletter/_assets/freshtech/logo.png" alt="">      <span class="brand-name">果蔬科技</span>
+    </a>
+    <nav class="nav">
+<a href="/woodsletter/fresh/">新鲜果蔬</a><a href="/woodsletter/tech/" class="on">果蔬科技</a><a href="/woodsletter/ai/">AI新闻</a>    </nav>
+  </div>
+</header>
+<main>
+<header class="hero hero-index">
+  <div class="wrap">
+    <div class="eyebrow">woodsletter</div>
+    <h1 class="h1">果蔬科技</h1>
+    <p class="dek">共 3 篇 · 最近更新 2026-10-23</p>
+  </div>
+</header>
+<div class="wrap">
+  <div class="filters" role="tablist">
+    <button class="chip on" data-f="">全部</button>
+<button class="chip" data-f="event">活动预告</button><button class="chip" data-f="award">奖项征集</button>  </div>
+  <div class="list">
+    <a class="entry" href="/woodsletter/tech/china-greenhouse-conference-2026-changsha/" data-t="event">
+      <div class="entry-meta"><span class="entry-type">活动预告</span><span>2026-10-23</span></div>
+      <div class="entry-title">第二十四届温室产业大会 11 月在长沙举办</div>
+      <div class="entry-dek">以“提质·焕新”为主题，8 个专题论坛、60 余场报告覆盖工厂化农业、灌溉与植物营养、AI 数智生产和温室装备。</div>
+    </a>
+    <a class="entry" href="/woodsletter/tech/freshtech-stage-agenda-2026/" data-t="event">
+      <div class="entry-meta"><span class="entry-type">活动预告</span><span>2026-08-20</span></div>
+      <div class="entry-title">FRESHTech Stage 两日议程：六大主题看果蔬科技全链路</div>
+      <div class="entry-dek">9 月 2 日至 3 日，二十余位专家在亚洲国际果蔬展分享从育种、分选、保鲜到冷链与溯源的落地技术，首届 FRESHTech 创新大奖同场揭晓。</div>
+    </a>
+    <a class="entry" href="/woodsletter/tech/freshtech-innovation-award-2026-call/" data-t="award">
+      <div class="entry-meta"><span class="entry-type">奖项征集</span><span>2026-07-07</span></div>
+      <div class="entry-title">首届 FRESHTech 创新大奖开放申请，7 月 31 日截止</div>
+      <div class="entry-dek">亚洲国际果蔬展旗下 FRESHTech 面向全球果蔬科技企业征集已落地的创新方案，前 3 名将于 9 月 3 日在香港现场路演。</div>
+    </a>
+  </div>
+</div>
+</main>
+<footer class="site-foot">
+  <div class="wrap">
+    <a href="/woodsletter/">woodsletter</a> · 由信息分拣中心自动整理 · <a href="https://woodsettler.com/">woodsettler.com</a>
+  </div>
+</footer>
+<script>
+// 按信息类型筛选
+document.querySelectorAll('.chip').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.chip').forEach(x => x.classList.toggle('on', x === b));
+  const f = b.dataset.f;
+  document.querySelectorAll('.entry').forEach(e => { e.hidden = !!f && e.dataset.t !== f; });
+}));
+</script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>AI新闻 · woodsletter</title>
+<meta name="description" content="woodsletter · 行业信息简报">
+<link rel="stylesheet" href="/woodsletter/_assets/base.css">
+<link rel="stylesheet" href="/woodsletter/_assets/garden/theme.css">
+</head>
+<body class="t-garden">
+<header class="site-head">
+  <div class="wrap head-row">
+    <a class="brand" href="/woodsletter/ai/">
+<img class="brand-logo" src="/woodsletter/_assets/garden/mark.svg" alt="">      <span class="brand-name">AI新闻</span>
+    </a>
+    <nav class="nav">
+<a href="/woodsletter/fresh/">新鲜果蔬</a><a href="/woodsletter/tech/">果蔬科技</a><a href="/woodsletter/ai/" class="on">AI新闻</a>    </nav>
+  </div>
+</header>
+<main>
+<header class="hero hero-index">
+  <div class="wrap">
+    <div class="eyebrow">woodsletter</div>
+    <h1 class="h1">AI新闻</h1>
+    <p class="dek">共 1 篇 · 最近更新 2026-07-01</p>
+  </div>
+</header>
+<div class="wrap">
+  <div class="list">
+    <a class="entry" href="/woodsletter/ai/claude-code-china-user-steganography-claim/" data-t="incident">
+      <div class="entry-meta"><span class="entry-type">事件追踪</span><span>2026-07-01</span></div>
+      <div class="entry-title">Claude Code 被指用隐写标记识别中国用户</div>
+      <div class="entry-dek">公众号「数字生命卡兹克」转述 Reddit 逆向分析：Claude Code 读取时区与中转地址，并在系统提示词里用肉眼不可见的字符差异标记用户。</div>
+    </a>
+  </div>
+</div>
+</main>
+<footer class="site-foot">
+  <div class="wrap">
+    <a href="/woodsletter/">woodsletter</a> · 由信息分拣中心自动整理 · <a href="https://woodsettler.com/">woodsettler.com</a>
+  </div>
+</footer>
+<script>
+// 按信息类型筛选
+document.querySelectorAll('.chip').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.chip').forEach(x => x.classList.toggle('on', x === b));
+  const f = b.dataset.f;
+  document.querySelectorAll('.entry').forEach(e => { e.hidden = !!f && e.dataset.t !== f; });
+}));
+</script>
+</body>
+</html>
