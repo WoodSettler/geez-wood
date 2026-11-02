@@ -1,62 +1,64 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
-<title>Claude Code 被指用隐写标记识别中国用户 · AI新闻 · woodsletter</title>
-<meta name="description" content="公众号「数字生命卡兹克」转述 Reddit 逆向分析：Claude Code 读取时区与中转地址，并在系统提示词里用肉眼不可见的字符差异标记用户。">
+<title>Claude Code accused of hiding a steganographic marker to flag users in China · AI News · woodsletter</title>
+<meta name="description" content="A WeChat blogger relays a Reddit reverse-engineering claim: Claude Code reads the time zone and proxy URL, then tags requests with invisible character swaps in the system prompt.">
+<link rel="alternate" hreflang="zh-CN" href="https://woodsettler.com/woodsletter/zh/ai/claude-code-china-user-steganography-claim/">
 <link rel="stylesheet" href="/woodsletter/_assets/base.css">
 <link rel="stylesheet" href="/woodsletter/_assets/garden/theme.css">
 </head>
-<body class="t-garden">
+<body class="t-garden lang-en">
 <header class="site-head">
   <div class="wrap head-row">
     <a class="brand" href="/woodsletter/ai/">
-<img class="brand-logo" src="/woodsletter/_assets/garden/mark.svg" alt="">      <span class="brand-name">AI新闻</span>
+<img class="brand-logo" src="/woodsletter/_assets/garden/mark.svg" alt="">      <span class="brand-name">AI News</span>
     </a>
     <nav class="nav">
-<a href="/woodsletter/fresh/">新鲜果蔬</a><a href="/woodsletter/tech/">果蔬科技</a><a href="/woodsletter/ai/" class="on">AI新闻</a>    </nav>
+<a href="/woodsletter/fresh/">Fresh Produce</a><a href="/woodsletter/tech/">Produce Tech</a><a href="/woodsletter/ai/" class="on">AI News</a>    </nav>
+    <a class="lang-switch" href="/woodsletter/zh/ai/claude-code-china-user-steganography-claim/" hreflang="zh-CN" title="Switch language">中文</a>
   </div>
 </header>
 <main>
 <article class="article">
   <header class="hero">
     <div class="wrap narrow">
-      <div class="eyebrow"><a href="/woodsletter/ai/">AI新闻</a> · 事件追踪</div>
-      <h1 class="h1">Claude Code 被指用隐写标记识别中国用户</h1>
-      <p class="dek">公众号「数字生命卡兹克」转述 Reddit 逆向分析：Claude Code 读取时区与中转地址，并在系统提示词里用肉眼不可见的字符差异标记用户。</p>
+      <div class="eyebrow"><a href="/woodsletter/ai/">AI News</a> · Developing Story</div>
+      <h1 class="h1">Claude Code accused of hiding a steganographic marker to flag users in China</h1>
+      <p class="dek">A WeChat blogger relays a Reddit reverse-engineering claim: Claude Code reads the time zone and proxy URL, then tags requests with invisible character swaps in the system prompt.</p>
       <div class="meta">
         <span>2026-07-01</span>
 <span>数字生命卡兹克</span><span><a href="https://mp.weixin.qq.com/s/yLb4T2UC16ebKHApdBbgWw" target="_blank" rel="noopener">mp.weixin.qq.com</a></span>      </div>
     </div>
   </header>
   <div class="wrap narrow body">
-<section class="block l-lead"><p class="b-lead">2026 年 7 月初，Claude 国内用户遭遇大面积封号。期间 Reddit 上有用户逆向 Claude Code，称发现一组隐蔽函数：它不看 IP，而是根据本地时区和 API 中转地址判断用户是否来自中国，再把结果藏进每次请求的系统提示词里。公众号作者称已在自己电脑上复现。</p></section>
-<section class="block l-callout"><aside class="b-callout tone-info"><div class="callout-title">信息来源说明</div><div>以下机制均来自社区逆向分析与公众号作者自述，原文未提及 Anthropic 的官方回应，请结合后续报道判断。</div></aside>
+<section class="block l-lead"><p class="b-lead">In early July 2026, Claude users in China were hit by a wave of account bans. In the same week a Reddit user who reverse-engineered Claude Code said they had found a set of hidden functions. Rather than checking IP addresses, the code reportedly infers whether a user is in China from the local time zone and the API proxy address, then embeds the result in the system prompt of every request. The WeChat author says they reproduced the finding on their own machine.</p></section>
+<section class="block l-callout"><aside class="b-callout tone-info"><div class="callout-title">About the sources</div><div>The mechanism below comes from community reverse engineering and the author&#x27;s own account. The original article does not mention any official response from Anthropic; read it alongside later coverage.</div></aside>
 </section>
-<section class="block l-steps"><h2 class="b-title">据称的识别与标记机制</h2>
-<ol class="b-steps"><li><div class="step-title">读取系统时区</div><div class="step-text">检查 macOS 或 Linux 的本地时区是否为 Asia/Shanghai 或 Asia/Urumqi，与网络出口 IP 无关。</div></li><li><div class="step-title">检查中转地址</div><div class="step-text">取出 ANTHROPIC_BASE_URL 中的域名，与内置的 147 个域名比对；列表经 base64 编码后再做 XOR（密钥 91）混淆。</div></li><li><div class="step-title">改写日期行</div><div class="step-text">把系统提示词 “Today&#x27;s date is …” 中的单引号替换为三种外观相同的 Unicode 字符之一，并在时区命中时把日期中的连字符改成斜杠。</div></li><li><div class="step-title">服务器端读取</div><div class="step-text">两处差异组成 2 到 3 比特的分类标记，服务器只需识别字符即可判断请求是否来自中国大陆时区。</div></li></ol>
+<section class="block l-steps"><h2 class="b-title">How the marker reportedly works</h2>
+<ol class="b-steps"><li><div class="step-title">Read the system time zone</div><div class="step-text">Checks whether the local macOS or Linux time zone is Asia/Shanghai or Asia/Urumqi, regardless of the network exit IP.</div></li><li><div class="step-title">Check the proxy address</div><div class="step-text">Extracts the domain from ANTHROPIC_BASE_URL and compares it with 147 built-in domains; the list is base64-encoded and then XOR-obfuscated with key 91.</div></li><li><div class="step-title">Rewrite the date line</div><div class="step-text">Replaces the apostrophe in “Today&#x27;s date is …” with one of three look-alike Unicode characters, and swaps the date hyphens for slashes when the time zone matches.</div></li><li><div class="step-title">Read on the server side</div><div class="step-text">Together the two changes form a 2 to 3 bit classification tag, so the server can tell whether a request comes from a mainland China time zone just by inspecting the characters.</div></li></ol>
 </section>
-<section class="block l-cards"><h2 class="b-title">被列入比对名单的域名</h2>
-<div class="b-cards"><div class="card"><div class="card-tag">中转站</div><div class="card-title">API 中转服务</div><div class="card-text">国内开发者常用的 Claude 中转站地址。</div></div><div class="card"><div class="card-tag">企业内网</div><div class="card-title">国内大厂代理</div><div class="card-text">作者列举了美团、网易、百度、携程、小红书、阿里巴巴、蚂蚁、字节跳动、京东、B 站等。</div></div><div class="card"><div class="card-tag">竞品</div><div class="card-title">AI 公司</div><div class="card-text">包括月之暗面、MiniMax、阶跃星辰等。</div></div></div>
+<section class="block l-cards"><h2 class="b-title">Domains on the comparison list</h2>
+<div class="b-cards"><div class="card"><div class="card-tag">Proxies</div><div class="card-title">API relay services</div><div class="card-text">Relay addresses commonly used by developers in China to reach Claude.</div></div><div class="card"><div class="card-tag">Corporate</div><div class="card-title">Big tech internal proxies</div><div class="card-text">The author lists Meituan, NetEase, Baidu, Trip.com, Xiaohongshu, Alibaba, Ant Group, ByteDance, JD.com, Bilibili and others.</div></div><div class="card"><div class="card-tag">Competitors</div><div class="card-title">AI companies</div><div class="card-text">Including Moonshot AI, MiniMax and StepFun.</div></div></div>
 </section>
-<section class="block l-keypoints"><h2 class="b-title">争议焦点</h2>
-<ol class="b-keypoints"><li>手法属于隐写术：信息藏在看似正常的文本里，编辑器和终端中肉眼无法分辨</li><li>作者认为这违背了 GDPR、App Store 审核指南等对数据收集透明度的要求</li><li>Claude Code 拥有读写代码、执行命令、操作 Git 的高权限，隐蔽标记放大了信任风险</li><li>帖子在中外开发者社区引发强烈反应，讨论已不限于中国用户</li></ol>
+<section class="block l-keypoints"><h2 class="b-title">Points of contention</h2>
+<ol class="b-keypoints"><li>The technique is steganography: the signal hides in normal-looking text that editors and terminals render identically</li><li>The author argues it conflicts with transparency rules on data collection such as GDPR and App Store guidelines</li><li>Claude Code can read and write code, run commands and operate Git, so a hidden marker raises the stakes for trust</li><li>The post drew strong reactions from developers in China and abroad, and the debate has moved beyond Chinese users</li></ol>
 </section>
-<section class="block l-quote"><figure class="b-quote"><blockquote>信任这个东西，建起来可能要三年。而塌掉的时候，仅仅只需要 1 秒。</blockquote><figcaption><b>卡兹克</b> · 公众号「数字生命卡兹克」作者</figcaption></figure>
+<section class="block l-quote"><figure class="b-quote"><blockquote>Trust can take three years to build. It takes only one second to collapse.</blockquote><figcaption><b>Kazik</b> · Author of the WeChat account “Digital Life Kazik”</figcaption></figure>
 </section>
-<div class="tags"><span class="tag">Anthropic</span><span class="tag">Claude Code</span><span class="tag">隐私</span><span class="tag">封号</span></div>    <aside class="source">
-      <div class="source-k">原文</div>
+<div class="tags"><span class="tag">Anthropic</span><span class="tag">Claude Code</span><span class="tag">Privacy</span><span class="tag">Account bans</span></div>    <aside class="source">
+      <div class="source-k">Source</div>
       <a href="https://mp.weixin.qq.com/s/yLb4T2UC16ebKHApdBbgWw" target="_blank" rel="noopener">Anthropic偷偷在Claude Code中植入了隐形代码，只为识别中国用户。</a>
-      <div class="source-note">剪藏于 2026-07-01。原文链接可能已失效，本页内容为整理摘录。</div>
+      <div class="source-note">Clipped on 2026-07-01. The original link may have expired; this page is an edited summary.</div>
     </aside>
   </div>
 </article>
 </main>
 <footer class="site-foot">
   <div class="wrap">
-    <a href="/woodsletter/">woodsletter</a> · 由信息分拣中心自动整理 · <a href="https://woodsettler.com/">woodsettler.com</a>
+    <a href="/woodsletter/">woodsletter</a> · Curated automatically by the Information Sorting Center · <a href="https://woodsettler.com/">woodsettler.com</a>
   </div>
 </footer>
 </body>

@@ -131,3 +131,14 @@ img{max-width:100%;height:auto}
 
 .site-foot{border-top:1px solid var(--line);padding:24px 0;font-family:var(--font-meta);font-size:13px;color:var(--muted)}
 .site-foot a{color:inherit}
+
+/* 语言切换 */
+.lang-switch{font-family:var(--font-meta);font-size:13px;font-weight:700;letter-spacing:.04em;color:var(--accent);border:1.5px solid var(--accent);border-radius:var(--r-chip);padding:4px 12px;line-height:1.2;white-space:nowrap}
+.lang-switch:hover{background:var(--accent);color:var(--accent-fg);text-decoration:none}
+.lang-en .h1,.lang-en .entry-title,.lang-en .b-title{letter-spacing:-.005em}
+/* 窄屏：品牌和语言按钮同一行，导航换到第二行 */
+@media(max-width:640px){
+  .head-row{row-gap:4px}
+  .lang-switch{order:2}
+  .nav{order:3;width:100%;margin-left:-12px}
+}

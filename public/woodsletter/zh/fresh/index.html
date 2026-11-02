@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>新鲜果蔬 · woodsletter</title>
+<meta name="description" content="日常阅读里剪藏下来的行业信息，按项目整理成简报。">
+<link rel="alternate" hreflang="en" href="https://woodsettler.com/woodsletter/fresh/">
+<link rel="stylesheet" href="/woodsletter/_assets/base.css">
+<link rel="stylesheet" href="/woodsletter/_assets/afl/theme.css">
+</head>
+<body class="t-afl lang-zh">
+<header class="site-head">
+  <div class="wrap head-row">
+    <a class="brand" href="/woodsletter/zh/fresh/">
+<img class="brand-logo" src="/woodsletter/_assets/afl/logo.png" alt="">      <span class="brand-name">新鲜果蔬</span>
+    </a>
+    <nav class="nav">
+<a href="/woodsletter/zh/fresh/" class="on">新鲜果蔬</a><a href="/woodsletter/zh/tech/">果蔬科技</a><a href="/woodsletter/zh/ai/">AI新闻</a>    </nav>
+    <a class="lang-switch" href="/woodsletter/fresh/" hreflang="en" title="切换语言">EN</a>
+  </div>
+</header>
+<main>
+<header class="hero hero-index">
+  <div class="wrap">
+    <div class="eyebrow">woodsletter</div>
+    <h1 class="h1">新鲜果蔬</h1>
+    <p class="dek">共 1 篇 · 最近更新 2026-10-17</p>
+  </div>
+</header>
+<div class="wrap">
+  <div class="list">
+    <a class="entry" href="/woodsletter/zh/fresh/ifpa-global-produce-floral-show-2026-recap/" data-t="show_report">
+      <div class="entry-meta"><span class="entry-type">活动回顾</span><span>2026-10-17</span></div>
+      <div class="entry-title">IFPA 2026 奥兰多展会闭幕：买家来源市场创新高</div>
+      <div class="entry-dek">国际鲜果协会（IFPA）年度展会吸引近 70 国参会者与 1,050 余家展商，美国以外零售商参与增长 10%，明年移师亚特兰大。</div>
+    </a>
+  </div>
+</div>
+</main>
+<footer class="site-foot">
+  <div class="wrap">
+    <a href="/woodsletter/zh/">woodsletter</a> · 由信息分拣中心自动整理 · <a href="https://woodsettler.com/">woodsettler.com</a>
+  </div>
+</footer>
+<script>
+// 按信息类型筛选
+document.querySelectorAll('.chip').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.chip').forEach(x => x.classList.toggle('on', x === b));
+  const f = b.dataset.f;
+  document.querySelectorAll('.entry').forEach(e => { e.hidden = !!f && e.dataset.t !== f; });
+}));
+</script>
+</body>
+</html>
