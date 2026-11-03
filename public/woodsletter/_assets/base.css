@@ -149,3 +149,63 @@ img{max-width:100%;height:auto}
 .editor-note figcaption{font-family:var(--font-meta);font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
 .editor-note blockquote{margin:0;font-size:18px;line-height:1.75;color:var(--fg)}
 .rights{margin:8px 0 0;font-size:12px;line-height:1.6;max-width:60em}
+
+/* FreshNews 周报 */
+.toc{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 32px}
+.toc a{font-family:var(--font-meta);font-size:13px;border:1px solid var(--line);border-radius:var(--r-chip);padding:3px 12px;color:var(--fg-2)}
+.toc a:hover{border-color:var(--accent);color:var(--accent);text-decoration:none}
+.wk-section{scroll-margin-top:80px}
+.wk-item{padding:18px 0;border-bottom:1px solid var(--line)}
+.wk-item:last-child{border-bottom:0}
+.wk-head{font-family:var(--font-head);font-weight:var(--w-head);font-size:18px;line-height:1.45;margin:0}
+.wk-sum{margin:8px 0 0;font-size:16px;line-height:1.75}
+.wk-meta{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:8px;font-family:var(--font-meta);font-size:13px;color:var(--muted)}
+.wk-src{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:6px;font-family:var(--font-meta);font-size:13px}
+@media(min-width:900px){.projects{grid-template-columns:repeat(2,1fr)}}
+
+/* FreshNews v2：刊头、三个数字、头条、编号条目、简讯 */
+.wk-hero{padding-bottom:28px}
+.masthead{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;border-bottom:2px solid var(--fg);padding-bottom:10px}
+.mh-name{font-family:"Director",var(--font-head);font-weight:700;font-size:26px;letter-spacing:.02em;color:var(--fg)}
+.mh-name:hover{text-decoration:none;color:var(--accent)}
+.mh-issue{font-family:var(--font-meta);font-size:13px;color:var(--muted);font-feature-settings:"tnum"}
+.mh-tagline{font-family:var(--font-meta);font-size:13px;color:var(--fg-2);margin:8px 0 22px}
+.wk-hero .h1{font-size:clamp(26px,4.4vw,38px)}
+.wk-note{margin-bottom:24px;padding:16px 20px 16px 22px}
+.wk-note blockquote{font-size:16px;line-height:1.7}
+.wk-k{font-family:var(--font-meta);font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+.wk-numbers{margin-bottom:28px}
+.wk-nums{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media(max-width:520px){.wk-nums{grid-template-columns:1fr}}
+.wk-num{display:flex;flex-direction:column;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);padding:14px 16px;color:var(--fg)}
+.wk-num:hover{text-decoration:none;border-color:var(--accent)}
+.wk-num .v{font-family:var(--font-head);font-weight:700;font-size:28px;line-height:1.1;color:#E55A30;font-feature-settings:"tnum"}
+.wk-num .l{font-size:14px;line-height:1.5;color:var(--fg-2)}
+@media(max-width:520px){.wk-num{flex-direction:row;align-items:baseline;gap:12px}.wk-num .v{font-size:22px;min-width:84px}}
+.wk-lead{background:var(--surface);border:1px solid var(--line);border-top:4px solid var(--fg);border-radius:var(--r-card);padding:20px 22px;margin-bottom:32px;scroll-margin-top:80px}
+.wk-lead-head{font-family:var(--font-head);font-weight:700;font-size:clamp(21px,3vw,26px);line-height:1.35;margin:0}
+.wk-why{margin:10px 0 0;font-size:15px;line-height:1.7;color:var(--fg-2)}
+.wk-why b{color:var(--fg)}
+.stage{display:inline-block;vertical-align:2px;font-family:var(--font-meta);font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--fg-2);border:1px solid var(--line);border-radius:var(--r-chip);padding:0 8px;line-height:18px;white-space:nowrap}
+.wk-k .stage{text-transform:none;letter-spacing:.04em;margin-left:6px}
+.wk-item{display:grid;grid-template-columns:40px 1fr;gap:0 10px;scroll-margin-top:80px}
+.wk-no a{font-family:var(--font-head);font-weight:700;font-size:18px;color:#E55A30;font-feature-settings:"tnum"}
+.wk-no a:hover{text-decoration:none}
+.wk-meta a{color:var(--accent)}
+.wk-briefs ul{list-style:none;margin:0;padding:0}
+.wk-briefs li{padding:10px 0;border-bottom:1px solid var(--line);font-size:15px;line-height:1.65;scroll-margin-top:80px}
+.wk-briefs li:last-child{border-bottom:0}
+.wk-foot{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:baseline}
+
+/* 手机端：导航单行横滑，首屏更紧凑，让“三个数字”进入首屏 */
+@media(max-width:640px){
+  .nav{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .nav::-webkit-scrollbar{display:none}
+  .nav a{flex:none}
+  .wk-hero{padding-top:24px;padding-bottom:16px}
+  .mh-name{font-size:22px}
+  .mh-tagline{margin:6px 0 14px}
+  .wk-hero .h1{font-size:24px}
+  .weekly .body{padding-top:18px}
+  .wk-numbers{margin-bottom:20px}
+}
