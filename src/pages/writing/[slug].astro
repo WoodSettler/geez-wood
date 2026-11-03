@@ -13,13 +13,6 @@ const { Content, headings } = await entry.render();
 
 const fmt = (d) => d.toLocaleDateString('en-CA').replace(/-/g, '·');
 
-// pull related notes that backlink this essay's slug or share tags
-const allNotes = await getCollection('notes', ({ data }) => !data.draft);
-const mentions = allNotes.filter(n =>
-  n.data.backlinks.includes(entry.slug) ||
-  n.data.tags.some(t => entry.data.tags.includes(t))
-).slice(0, 5);
-
 // next/prev essays for "continue reading"
 const allEssays = (await getCollection('essays', ({ data }) => !data.draft))
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
@@ -49,7 +42,7 @@ const nextEssays = [allEssays[idx + 1], allEssays[idx - 1]].filter(Boolean).slic
         {entry.data.tags.length > 0 && (
           <>
             <span class="dot"></span>
-            <span class="tags">tagged {entry.data.tags.map(t => <a href={`/tag/${t}`}>#{t}</a>)}</span>
+            <span class="tags">tagged {entry.data.tags.map(t => <span>#{t} </span>)}</span>
           </>
         )}
       </div>
@@ -60,23 +53,6 @@ const nextEssays = [allEssays[idx + 1], allEssays[idx - 1]].filter(Boolean).slic
     </article>
 
     <section class="after">
-      {mentions.length > 0 && (
-        <div>
-          <h3>← <b>mentioned by</b> · {mentions.length} notes</h3>
-          <ul class="backlinks-list">
-            {mentions.map(n => (
-              <li>
-                <a href={`/wood/${n.slug}`}>
-                  <span class:list={['stage', n.data.stage]}></span>
-                  <span class="t">{n.data.title}</span>
-                  <span class="meta"><b>{n.data.stage}</b> · wood</span>
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
       {nextEssays.length > 0 && (
         <div>
           <h3>→ <b>continue reading</b></h3>

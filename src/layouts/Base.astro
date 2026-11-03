@@ -9,6 +9,7 @@ const {
   title,
   description = SITE.tagline,
   current = '',
+  bare = false,   // true: 不渲染 nav 与 footer (首页用)
 } = Astro.props;
 
 const pageTitle = title ? `${title} · ${SITE.name}` : `${SITE.name} · ${SITE.brand}`;
@@ -36,8 +37,8 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site).href;
 </head>
 <body>
   <SvgFilters />
-  <Nav current={current} />
+  {!bare && <Nav current={current} />}
   <slot />
-  <Footer />
+  {!bare && <Footer />}
 </body>
 </html>

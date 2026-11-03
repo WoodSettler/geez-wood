@@ -1,7 +1,6 @@
 /**
  * Content collections — schema for Markdown / data files in src/content/.
  * Add a new essay → drop a .md into src/content/essays/
- * Add a new wood note → drop a .md into src/content/notes/
  *
  * Frontmatter fields below are the contract. Astro validates at build.
  */
@@ -21,31 +20,6 @@ const essays = defineCollection({
     featured:    z.boolean().default(false),
     draft:       z.boolean().default(false),
     cover:       z.string().optional(),    // path to image in public/
-  }),
-});
-
-const notes = defineCollection({
-  type: 'content',
-  schema: z.object({
-    title:        z.string(),
-    summary:      z.string().optional(),
-    stage:        z.enum(['seedling', 'growing', 'evergreen']).default('seedling'),
-    created:      z.coerce.date(),
-    lastWatered:  z.coerce.date(),
-    tags:         z.array(z.string()).default([]),
-    backlinks:    z.array(z.string()).default([]),   // ids of other notes
-    draft:        z.boolean().default(false),
-  }),
-});
-
-const letters = defineCollection({
-  type: 'content',
-  schema: z.object({
-    number:   z.number(),
-    title:    z.string(),
-    date:     z.coerce.date(),
-    summary:  z.string().optional(),
-    draft:    z.boolean().default(false),
   }),
 });
 
@@ -89,4 +63,4 @@ const pages = defineCollection({
   schema: z.object({}).passthrough(),
 });
 
-export const collections = { essays, notes, letters, books, listening, pages };
+export const collections = { essays, books, listening, pages };

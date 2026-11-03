@@ -10,10 +10,6 @@ const recentEssays = (await getCollection('essays', ({ data }) => !data.draft))
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
   .slice(0, 2);
 
-const recentNotes = (await getCollection('notes', ({ data }) => !data.draft))
-  .sort((a, b) => b.data.lastWatered.valueOf() - a.data.lastWatered.valueOf())
-  .slice(0, 2);
-
 const today = new Date();
 const yyyymm = today.toLocaleDateString('en-CA').slice(0, 7).replace('-', '·');
 ---
@@ -72,15 +68,6 @@ const yyyymm = today.toLocaleDateString('en-CA').slice(0, 7).replace('-', '·');
           <a href={`/writing/${e.slug}`}>
             <span class="t">{e.data.title}</span>
             <span class="d">{e.data.summary}</span>
-          </a>
-        ))}
-      </div>
-      <div class="links-col">
-        <h3>recent in the wood</h3>
-        {recentNotes.map(n => (
-          <a href={`/wood/${n.slug}`}>
-            <span class="t"><span class={`blob ${n.data.stage}`}></span>{n.data.title}</span>
-            <span class="d">{n.data.summary}</span>
           </a>
         ))}
       </div>

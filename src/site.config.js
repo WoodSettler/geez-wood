@@ -33,21 +33,16 @@ export const SITE = {
  * Top nav — order matters.
  */
 export const NAV = [
-  { id: 'home',        label: 'home',        href: '/' },
   { id: 'writing',     label: 'writing',     href: '/writing' },
-  { id: 'wood',        label: 'wood',        href: '/wood' },
   { id: 'collections', label: 'collections', href: '/collections' },
   { id: 'now',         label: 'now',         href: '/now' },
   { id: 'about',       label: 'about',       href: '/about' },
 ];
 
 /**
- * Whether to render the letter-subscribe form.
- * Set true after you wire up Buttondown/MailerLite.
+ * 功能开关
  */
 export const FEATURES = {
-  lettersForm:  false,   // hide subscribe button for now
-  contactForm:  false,   // use mailto: instead of in-page form
   cmdkSearch:   false,   // search UI present but visual-only until wired
   analytics:    false,   // intentionally not added
 };

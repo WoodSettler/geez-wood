@@ -26,7 +26,5 @@ facets:
     eb: thinking
     items:
       - 脑袋空空
-footer: >-
-  最近一次更新 <b>{date}</b>。 想知道更细的, 去 <a href="/wood">wood</a> 看半成品笔记, 或者 <a
-  href="/contact">寄一封信</a>。
+footer: 最近一次更新 <b>{date}</b>。
 ---

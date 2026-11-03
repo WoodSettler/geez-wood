@@ -1,256 +1,111 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { SITE } from '../../site.config.js';
 import { getCollection, getEntry } from 'astro:content';
 
 // 页面文案 (可在 src/content/pages/collections.md 编辑)
 const page = (await getEntry('pages', 'collections')).data;
 
-// Books from data collection — render only if user has added some
-let books = [];
-try {
-  books = await getCollection('books');
-} catch (e) {
-  books = [];
-}
+// 集合为空时 getCollection 可能报错, 兜底成空数组
+const safe = async (name) => { try { return await getCollection(name); } catch { return []; } };
 
-// 在听 — 真封面网格, 按加入日期倒序
-let listening = [];
-try {
-  listening = await getCollection('listening');
-} catch (e) {
-  listening = [];
-}
-listening.sort((a, b) => (b.data.date?.valueOf() ?? 0) - (a.data.date?.valueOf() ?? 0));
+const KIND_LABEL = { album: '专辑', track: '单曲', podcast: '播客' };
 
-const byStatus = {
-  reading:  books.filter(b => b.data.status === 'reading'),
-  finished: books.filter(b => b.data.status === 'finished'),
-  paused:   books.filter(b => b.data.status === 'paused'),
-  want:     books.filter(b => b.data.status === 'want'),
-};
-const currentlyReading = byStatus.reading[0];
+// 书与专辑归一成同一种卡片数据, 合并后按加入日期倒序
+const books = (await safe('books')).map((b) => ({
+  kind: '书',
+  title: b.data.titleZh || b.data.title,
+  by: [b.data.author, b.data.year].filter(Boolean).join(' · '),
+  cover: null,
+  tint: b.data.coverTint,
+  note: b.data.note,
+  link: null,
+  ratio: '2 / 3',
+  date: b.data.date?.valueOf() ?? 0,
+}));
+const albums = (await safe('listening')).map((t) => ({
+  kind: KIND_LABEL[t.data.kind] ?? '专辑',
+  title: t.data.title,
+  by: [t.data.artist, t.data.year].filter(Boolean).join(' · '),
+  cover: t.data.cover ?? null,
+  tint: t.data.coverTint,
+  note: t.data.why,
+  link: t.data.link ?? null,
+  ratio: '1 / 1',
+  date: t.data.date?.valueOf() ?? 0,
+}));
+const shelf = [...books, ...albums].sort((a, b) => b.date - a.date);
 ---
 
 <Base current="collections" title="collections">
   <main class="shell">
 
-    <div class="crumb">
-      <div set:html={page.crumb}></div>
-      <div class="right">{books.length} books</div>
-    </div>
-
     <header class="head">
       <h1 set:html={page.head.title}></h1>
-      <div class="rhs">
-        <div class="eb">{page.head.eb}</div>
-        <p set:html={page.head.p}></p>
-      </div>
+      {page.head.p && <p set:html={page.head.p}></p>}
     </header>
 
-    {currentlyReading && (
-      <section class="cr-feature">
-        <div class="cover">
-          <div class={`swatch swatch-${currentlyReading.data.coverTint}`}></div>
-        </div>
-        <div class="info">
-          <div class="eb">currently reading · 在读</div>
-          <h2>{currentlyReading.data.titleZh || currentlyReading.data.title}</h2>
-          <div class="author">{currentlyReading.data.author}{currentlyReading.data.year && ` · ${currentlyReading.data.year}`}</div>
-          {currentlyReading.data.progress && (
-            <div class="progress">
-              <span class="pct">{currentlyReading.data.progress}%</span>
-              <span class="bar" style={`--p:${currentlyReading.data.progress}%`}></span>
-            </div>
-          )}
-          {currentlyReading.data.note && <p class="note"><b>note ·</b> {currentlyReading.data.note}</p>}
-        </div>
-      </section>
-    )}
-
-    {!currentlyReading && books.length === 0 && (
-      <section class="empty">
-        <h3>shelf is empty 📭</h3>
-        <p>
-          想加书? 在 <code>src/content/books/</code> 下扔个 JSON 文件:
-        </p>
-        <pre>{`{
-  "title": "地下森林",
-  "author": "周晓枫",
-  "status": "reading",
-  "progress": 42,
-  "note": "周晓枫写自然像耳鬓厮磨, 不是描述。"
-}`}</pre>
-      </section>
-    )}
-
-    {books.length > 0 && (
-      <>
-        <div class="section-divider">
-          <span class="kicker"><b>§ 04 · 01</b> · books · {books.length} 总</span>
-          <h2 set:html={page.sections.books}></h2>
-        </div>
-        <section class="books">
-          {books.map(b => (
-            <div class="book">
-              <div class="cover">
-                <div class={`swatch swatch-${b.data.coverTint}`}></div>
-                <span class={`status-tag ${b.data.status}`}>{b.data.status}</span>
-                <div class="title-on-cover">
-                  <span class="t">{b.data.titleZh || b.data.title}</span>
-                  <span class="a">{b.data.author}</span>
-                </div>
-              </div>
-              <div class="meta">
-                <span class="stars">{b.data.rating ? '★'.repeat(b.data.rating) : '—'}</span>
-                {b.data.date && <span class="when">{b.data.date.toLocaleDateString('en-CA').slice(0, 7).replace('-', '·')}</span>}
-              </div>
-              {b.data.note && <p class="note-snippet"><b>my note ·</b> {b.data.note}</p>}
-            </div>
-          ))}
-        </section>
-      </>
-    )}
-
-    <div class="section-divider">
-      <span class="kicker"><b>§ 04 · 02</b> · listening · {listening.length > 0 ? `${listening.length} 张` : 'coming soon'}</span>
-      <h2 set:html={page.sections.listening}></h2>
-    </div>
-    {listening.length > 0 ? (
-      <section class="listening">
-        {listening.map(t => {
+    {shelf.length === 0 ? (
+      <p class="empty" set:html={page.empty}></p>
+    ) : (
+      <section class="shelf">
+        {shelf.map((it) => {
           const inner = (
             <>
-              <div class="art">
-                {t.data.cover
-                  ? <img src={t.data.cover} alt={`${t.data.title} — ${t.data.artist}`} loading="lazy" width="600" height="600" />
-                  : <div class={`swatch swatch-${t.data.coverTint}`}></div>}
-                <span class={`status ${t.data.status}`}>{t.data.status}</span>
-                {t.data.link && <span class="read-cue">读 →</span>}
+              <div class="art" style={`aspect-ratio:${it.ratio}`}>
+                {it.cover
+                  ? <img src={it.cover} alt={`${it.title} — ${it.by}`} loading="lazy" />
+                  : <div class={`swatch swatch-${it.tint}`}></div>}
+                {!it.cover && <span class="title-on-cover">{it.title}</span>}
               </div>
-              <div class="track-body">
-                <span class="title">{t.data.title}</span>
-                <span class="artist">{t.data.artist}{t.data.year ? ` · ${t.data.year}` : ''}</span>
-                {t.data.why && <p class="why">{t.data.why}</p>}
+              <div class="body">
+                <span class="tag">{it.kind}</span>
+                <span class="title">{it.title}</span>
+                <span class="by">{it.by}</span>
+                {it.note && <p class="note">{it.note}</p>}
               </div>
             </>
           );
-          return t.data.link
-            ? <a class="track is-link" href={t.data.link}>{inner}</a>
-            : <div class="track">{inner}</div>;
+          return it.link
+            ? <a class="item is-link" href={it.link}>{inner}</a>
+            : <div class="item">{inner}</div>;
         })}
       </section>
-    ) : (
-      <p class="todo" set:html={page.listeningTodo}></p>
     )}
-
-    <div class="section-divider">
-      <span class="kicker"><b>§ 04 · 03</b> · links · coming soon</span>
-      <h2 set:html={page.sections.links}></h2>
-    </div>
-    <p class="todo" set:html={page.linksTodo}></p>
 
   </main>
 </Base>
 
 <style>
-  .crumb { padding: 24px 0 8px; display: flex; justify-content: space-between; font-family: var(--font-h); font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-3); }
-  .crumb b { color: var(--ink); font-weight: 500; }
-  .crumb .right { font-family: var(--font-mono); font-size: 11px; color: var(--ink-4); letter-spacing: 0.06em; }
+  .head { padding: 56px 0 40px; max-width: 760px; }
+  .head h1 { font-family: var(--font-display); font-weight: 400; font-size: clamp(56px, 8vw, 112px); line-height: 0.9; letter-spacing: -0.03em; margin: 0 0 18px; }
+  .head h1 :global(em) { font-style: italic; color: var(--dye-tomato); }
+  .head h1 :global(.dot) { color: var(--dye-sun); }
+  .head p { font-family: var(--font-body); font-style: italic; font-size: 17px; line-height: 1.55; color: var(--ink-3); margin: 0; max-width: 46ch; }
 
-  .head { display: grid; grid-template-columns: 1.4fr 1fr; gap: 56px; align-items: end; padding: 36px 0 36px; }
-  .head h1 { font-family: var(--font-display); font-weight: 400; font-size: clamp(64px, 10vw, 140px); line-height: 0.86; letter-spacing: -0.03em; margin: 0; text-wrap: balance; }
-  .head h1 em { font-style: italic; color: var(--dye-tomato); }
-  .head h1 .dot { color: var(--dye-sun); }
-  .head .rhs { border-left: 1px solid var(--ink); padding-left: 28px; padding-bottom: 14px; }
-  .head .rhs .eb { font-family: var(--font-h); font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 10px; }
-  .head .rhs p { font-family: var(--font-body); font-style: italic; font-size: 17px; line-height: 1.55; color: var(--ink-2); margin: 0; max-width: 38ch; }
-  .head .rhs p b { font-style: normal; font-weight: 600; color: var(--ink); }
+  .empty { font-family: var(--font-body); font-style: italic; color: var(--ink-3); }
 
-  .cr-feature { margin: 32px 0 80px; display: grid; grid-template-columns: 220px 1fr; gap: 56px; align-items: center; background: var(--paper-soft); border: 1.5px solid var(--ink); box-shadow: 8px 8px 0 var(--ink-2); padding: 40px 48px; position: relative; overflow: hidden; isolation: isolate; }
-  .cr-feature::before { content: ""; position: absolute; inset: -20% -20%; background: radial-gradient(40% 50% at 80% 20%, var(--tomato-wash) 0%, transparent 70%), radial-gradient(50% 60% at 90% 80%, var(--sun-wash) 0%, transparent 70%); filter: url(#dg-wc) blur(2px); opacity: 0.55; z-index: 0; }
-  .cr-feature > * { position: relative; z-index: 1; }
-  .cr-feature .cover { aspect-ratio: 3/4; width: 100%; border: 1.5px solid var(--ink); box-shadow: 5px 5px 0 var(--ink-2); overflow: hidden; background: var(--paper-deep); transform: rotate(-2deg); transition: transform 400ms var(--ease-soft); position: relative; }
-  .cr-feature:hover .cover { transform: rotate(0deg); }
-  .cr-feature .cover .swatch { position: absolute; inset: 0; opacity: 0.7; filter: url(#dg-wc) blur(2px); }
-  .cr-feature .info .eb { font-family: var(--font-h); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--dye-tomato); font-weight: 600; margin-bottom: 14px; }
-  .cr-feature .info h2 { font-family: var(--font-display); font-style: italic; font-weight: 400; font-size: clamp(36px, 4.4vw, 60px); line-height: 0.98; color: var(--ink); margin: 0 0 10px; }
-  .cr-feature .info .author { font-family: var(--font-mono); font-size: 14px; color: var(--ink-2); margin-bottom: 18px; }
-  .cr-feature .info .progress { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
-  .cr-feature .info .progress .pct { font-family: var(--font-display); font-style: italic; font-size: 32px; color: var(--dye-tomato); line-height: 1; }
-  .cr-feature .info .progress .bar { flex: 1; height: 3px; background: var(--rule); position: relative; max-width: 240px; }
-  .cr-feature .info .progress .bar::after { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: var(--p, 42%); background: var(--dye-tomato); }
-  .cr-feature .info .note { background: var(--paper); border-left: 2px solid var(--dye-tomato); padding: 12px 16px; margin: 0; font-family: var(--font-body); font-style: italic; font-size: 14px; line-height: 1.5; color: var(--ink-2); max-width: 52ch; }
-  .cr-feature .info .note b { font-style: normal; font-weight: 600; color: var(--ink); }
+  /* 统一网格: 书 (2:3) 与专辑 (1:1) 底部对齐 */
+  .shelf { display: grid; grid-template-columns: repeat(4, 1fr); gap: 48px 32px; align-items: end; }
+  .item { display: flex; flex-direction: column; gap: 12px; color: inherit; text-decoration: none; }
+  .art { position: relative; overflow: hidden; background: var(--paper-deep); border: 1px solid var(--ink-3); box-shadow: 0 6px 12px -6px rgba(58,51,43,0.25); transition: transform 400ms var(--ease-soft), box-shadow var(--dur-base); }
+  .item.is-link:hover .art { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--ink-2); }
+  .art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+  .art .swatch { position: absolute; inset: 0; opacity: 0.75; filter: url(#dg-wc) blur(2px); }
+  .art .title-on-cover { position: absolute; inset: 0; padding: 16px; font-family: var(--font-card); font-size: 18px; line-height: 1.15; color: var(--ink); }
 
-  /* shared swatch palette */
+  .body { display: flex; flex-direction: column; gap: 4px; }
+  .tag { align-self: flex-start; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; padding: 2px 7px; border: 1px solid var(--ink-3); color: var(--ink-2); border-radius: 2px; margin-bottom: 4px; }
+  .title { font-family: var(--font-body); font-style: italic; font-size: 16px; line-height: 1.25; color: var(--ink); }
+  .item.is-link:hover .title { color: var(--dye-tomato); }
+  .by { font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); letter-spacing: 0.04em; }
+  .note { font-family: var(--font-body); font-style: italic; font-size: 13px; line-height: 1.45; color: var(--ink-3); margin: 6px 0 0; }
+
   .swatch-t { background: radial-gradient(60% 60% at 30% 30%, var(--tomato-wash), transparent 70%), radial-gradient(50% 50% at 70% 70%, var(--sun-wash), transparent 70%); }
   .swatch-s { background: radial-gradient(60% 60% at 30% 30%, var(--sage-wash), transparent 70%), radial-gradient(50% 50% at 70% 70%, var(--sun-wash), transparent 70%); }
   .swatch-p { background: radial-gradient(60% 60% at 30% 30%, var(--plum-wash), transparent 70%), radial-gradient(50% 50% at 70% 70%, var(--rose-wash), transparent 70%); }
   .swatch-u { background: radial-gradient(60% 60% at 30% 30%, var(--sun-wash), transparent 70%), radial-gradient(50% 50% at 70% 70%, var(--tomato-wash), transparent 70%); }
   .swatch-n { background: var(--paper-deep); }
 
-  .empty { padding: 48px 0; text-align: center; max-width: 640px; margin: 0 auto; }
-  .empty h3 { font-family: var(--font-display); font-style: italic; font-size: 32px; color: var(--ink); margin: 0 0 14px; }
-  .empty p { font-family: var(--font-body); font-style: italic; font-size: 16px; color: var(--ink-3); }
-  .empty code { font-family: var(--font-mono); background: var(--paper-deep); padding: 0.1em 0.4em; border-radius: 2px; color: var(--ink); font-style: normal; }
-  .empty pre { background: var(--paper-deep); padding: 18px; border-radius: 2px; text-align: left; font-family: var(--font-mono); font-size: 13px; line-height: 1.55; margin: 20px auto 0; max-width: 480px; }
-
-  .section-divider { margin: 56px 0 28px; display: grid; grid-template-columns: auto 1fr auto; gap: 24px; align-items: baseline; padding-bottom: 18px; border-bottom: 1px solid var(--ink); }
-  .section-divider .kicker { font-family: var(--font-h); font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-3); }
-  .section-divider .kicker b { color: var(--dye-tomato); font-weight: 500; }
-  .section-divider h2 { font-family: var(--font-display); font-style: normal; font-weight: 400; font-size: clamp(32px, 4vw, 56px); line-height: 0.95; letter-spacing: -0.02em; margin: 0; }
-  .section-divider h2 em { font-style: italic; }
-  .section-divider h2 em.tomato { color: var(--dye-tomato); }
-  .section-divider h2 em.sage   { color: var(--dye-sage); }
-  .section-divider h2 em.plum   { color: var(--dye-plum); }
-
-  .books { display: grid; grid-template-columns: repeat(4, 1fr); gap: 36px 28px; margin-bottom: 80px; }
-  .book { display: flex; flex-direction: column; gap: 10px; }
-  .book .cover { aspect-ratio: 2/3; border: 1px solid var(--ink-3); background: var(--paper-deep); position: relative; overflow: hidden; box-shadow: 0 6px 12px -6px rgba(58,51,43,0.25); }
-  .book .cover .swatch { position: absolute; inset: 0; opacity: 0.7; filter: url(#dg-wc) blur(2px); }
-  .book .cover .title-on-cover { position: absolute; inset: 0; padding: 18px 16px; display: flex; flex-direction: column; justify-content: space-between; z-index: 1; }
-  .book .cover .title-on-cover .t { font-family: var(--font-card); font-size: 18px; line-height: 1.1; color: var(--ink); text-wrap: balance; }
-  .book .cover .title-on-cover .a { font-family: var(--font-mono); font-size: 10px; color: var(--ink-3); letter-spacing: 0.05em; text-transform: uppercase; }
-  .book .cover .status-tag { position: absolute; top: 10px; right: 10px; font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; padding: 3px 7px; border-radius: 2px; background: var(--paper); border: 1px solid var(--ink-3); color: var(--ink); z-index: 2; }
-  .book .cover .status-tag.reading  { color: var(--dye-tomato); border-color: var(--dye-tomato); }
-  .book .cover .status-tag.finished { color: var(--dye-sage); border-color: var(--dye-sage); }
-  .book .cover .status-tag.paused   { color: var(--ink-3); }
-  .book .cover .status-tag.want     { color: var(--dye-sun); border-color: var(--dye-sun); }
-  .book .meta { display: flex; justify-content: space-between; font-family: var(--font-h); font-size: 11px; color: var(--ink-3); }
-  .book .meta .stars { color: var(--dye-tomato); }
-  .book .meta .when { font-family: var(--font-mono); font-size: 10px; color: var(--ink-4); }
-  .book .note-snippet { font-family: var(--font-body); font-style: italic; font-size: 13px; line-height: 1.4; color: var(--ink-3); padding-left: 10px; border-left: 2px solid var(--rule); margin: 0; }
-  .book .note-snippet b { font-style: normal; color: var(--ink); font-weight: 500; }
-
-  /* listening — 画框 + 真封面 */
-  .listening { display: grid; grid-template-columns: repeat(4, 1fr); gap: 36px 28px; margin-bottom: 80px; }
-  .track { display: flex; flex-direction: column; gap: 10px; }
-  .track.is-link { text-decoration: none; color: inherit; }
-  .track .art { aspect-ratio: 1 / 1; border: 1.5px solid var(--ink); background: var(--paper-deep); position: relative; overflow: hidden; box-shadow: 0 6px 12px -6px rgba(58,51,43,0.25); transition: transform 400ms var(--ease-soft), box-shadow var(--dur-base); }
-  .track:hover .art { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--ink-2); }
-  .track .art .read-cue { position: absolute; left: 8px; bottom: 8px; font-family: var(--font-h); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 600; padding: 4px 9px; background: var(--ink); color: var(--paper); z-index: 2; opacity: 0; transform: translateY(4px); transition: opacity var(--dur-base), transform var(--dur-base); }
-  .track.is-link:hover .read-cue { opacity: 1; transform: translateY(0); }
-  .track.is-link:hover .title { text-decoration: underline; text-decoration-color: var(--dye-plum); text-underline-offset: 0.22em; }
-  .track .art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
-  .track .art .swatch { position: absolute; inset: 0; opacity: 0.8; filter: url(#dg-wc) blur(2px); }
-  .track .art .status { position: absolute; top: 8px; right: 8px; font-family: var(--font-h); font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 600; padding: 3px 7px; background: var(--paper); border: 1px solid var(--ink-3); color: var(--ink); z-index: 2; }
-  .track .art .status.loop   { color: var(--dye-tomato); border-color: var(--dye-tomato); }
-  .track .art .status.new    { color: var(--dye-sun); border-color: var(--dye-sun); }
-  .track .art .status.paused { color: var(--ink-3); }
-  .track .title { font-family: var(--font-body); font-style: italic; font-size: 16px; line-height: 1.2; color: var(--ink); }
-  .track .artist { font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); letter-spacing: 0.04em; }
-  .track .why { font-family: var(--font-body); font-style: italic; font-size: 13px; line-height: 1.45; color: var(--ink-3); padding-left: 10px; border-left: 2px solid var(--rule); margin: 2px 0 0; }
-
-  .todo { font-family: var(--font-body); font-style: italic; font-size: 15px; color: var(--ink-3); padding: 24px 0; margin: 0 0 56px; }
-  .todo code { font-family: var(--font-mono); background: var(--paper-deep); padding: 0.1em 0.4em; border-radius: 2px; color: var(--ink); font-style: normal; }
-
-  @media (max-width: 1100px) { .books, .listening { grid-template-columns: repeat(3, 1fr); } }
-  @media (max-width: 760px) {
-    .head { grid-template-columns: 1fr; gap: 24px; }
-    .head .rhs { border-left: 0; padding-left: 0; padding-top: 18px; border-top: 1px solid var(--ink); }
-    .cr-feature { grid-template-columns: 1fr; padding: 28px; gap: 24px; }
-    .cr-feature .cover { max-width: 180px; }
-    .books, .listening { grid-template-columns: repeat(2, 1fr); }
-  }
+  @media (max-width: 1100px) { .shelf { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 760px)  { .shelf { grid-template-columns: repeat(2, 1fr); gap: 36px 20px; } }
 </style>

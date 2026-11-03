@@ -67,7 +67,7 @@ const stamps = { essay: '¶ essay', field: '▾ field note', project: '◇ proje
           <div class="actions">
             <a class="read" href={`/writing/${featured.slug}`}>继续读 →</a>
             {featured.data.tags.length > 0 && (
-              <span class="tags">{featured.data.tags.map(t => <a href={`/tag/${t}`}>#{t}</a>)}</span>
+              <span class="tags">{featured.data.tags.map(t => <span>#{t} </span>)}</span>
             )}
           </div>
         </div>

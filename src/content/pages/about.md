@@ -26,8 +26,8 @@ signoff:
   sigSmall: '— 在办公室假装工作, {location}, 2026'
 onward:
   - { href: '/now', eb: 'newer than this →', t: 'what i''m doing now.' }
-  - { href: '/writing', eb: 'read me →', t: 'essays & letters.', d: '想了解我的想法？' }
-  - { href: '/about/colophon', eb: 'geek out →', t: 'the colophon.', d: '字体、技术栈、致谢、为什么这个站长这样。' }
+  - { href: '/writing', eb: 'read me →', t: 'essays.', d: '想了解我的想法？' }
+  - { href: '/collections', eb: 'on the shelf →', t: 'books & albums.' }
 ---
 
 拥有自己的个人网站是一件奢侈的事情。至少，对大多数人来说，对一两年前的我来说，是这样的。倘若要恰当地介绍自己，我仍然不知该如何对我的现状进行身份归纳。vibe coder？vibe designer？我感觉我远远没达到那么远的地方。非要说的话，我需要一连串形容词，一个认真的、充满热情的、年轻的、废寝忘食的AI User。
