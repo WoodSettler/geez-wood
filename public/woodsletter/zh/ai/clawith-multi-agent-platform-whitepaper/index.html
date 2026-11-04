@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>Clawith：把 AI Agent 变成有工位的数字员工 · AI新闻 · woodsletter</title>
+<meta name="description" content="开源多智能体平台 Clawith 发布技术白皮书，主张 Agent 应有身份、记忆、工位与同事关系，并公开了 Trigger、Focus、Heartbeat 三条机制的工程实现。">
+<link rel="alternate" hreflang="en" href="https://woodsettler.com/woodsletter/ai/clawith-multi-agent-platform-whitepaper/">
+<link rel="stylesheet" href="/woodsletter/_assets/base.css">
+<link rel="stylesheet" href="/woodsletter/_assets/garden/theme.css">
+</head>
+<body class="t-garden lang-zh">
+<header class="site-head">
+  <div class="wrap head-row">
+    <a class="brand" href="/woodsletter/zh/ai/">
+<img class="brand-logo" src="/woodsletter/_assets/garden/mark.svg" alt="">      <span class="brand-name">AI新闻</span>
+    </a>
+    <nav class="nav">
+<a href="/woodsletter/zh/fresh/">新鲜果蔬</a><a href="/woodsletter/zh/tech/">果蔬科技</a><a href="/woodsletter/zh/ai/" class="on">AI新闻</a><a href="/woodsletter/zh/weekly/">FreshNews</a>    </nav>
+    <a class="lang-switch" href="/woodsletter/ai/clawith-multi-agent-platform-whitepaper/" hreflang="en" title="切换语言">EN</a>
+  </div>
+</header>
+<main>
+<article class="article">
+  <header class="hero">
+    <div class="wrap narrow">
+      <div class="eyebrow"><a href="/woodsletter/zh/ai/">AI新闻</a> · 行业新闻</div>
+      <h1 class="h1">Clawith：把 AI Agent 变成有工位的数字员工</h1>
+      <p class="dek">开源多智能体平台 Clawith 发布技术白皮书，主张 Agent 应有身份、记忆、工位与同事关系，并公开了 Trigger、Focus、Heartbeat 三条机制的工程实现。</p>
+      <div class="meta">
+        <span>2026-03-25</span>
+<span><a href="https://www.clawith.ai/zh-Hans/blog/clawith-technical-whitepaper" target="_blank" rel="noopener">clawith.ai</a></span>      </div>
+    </div>
+  </header>
+  <div class="wrap narrow body">
+    <figure class="block editor-note"><figcaption>编者按</figcaption><blockquote>值得看的不是它把自己叫作第几代，而是几处具体取舍：唤醒交给 15 秒轮询的守护线程，不让大模型常驻等待；Focus 与 Trigger 强制绑定，避免出现没有目标的闹钟；关系必须由人先建立，Agent 不能自己加好友。这三条都是把自主性关进工程约束里的做法，自己做 Agent 工作流时可以直接借。配额与审计那部分也说明，多 Agent 的成本失控是真实存在的问题。</blockquote></figure>
+<section class="block l-lead"><p class="b-lead">Clawith 把自己定位为面向企业协作网络的开源多智能体协同工作域，白皮书的主张是：AI Agent 不该只是对话框里的问答工具，而应是组织架构中有独立身份、有专属工位、有同事关系的常驻数字员工。每个 Agent 拥有 soul.md、memory.md、Focus.md 与独立的触发器，可以分配预算 Token 并设定部门可见性，也能自动投射为飞书、Slack 或私有化 IM 里的企业服务机器人。</p></section>
+<section class="block l-keypoints">
+<ol class="b-keypoints"><li>Agent 从对话框升格为有身份、记忆与工位的数字员工</li><li>Trigger、Focus、Heartbeat 三条机制给出自主唤醒的实现</li><li>L1-L4 分级自治，高危操作走人工审批卡片</li><li>自带多租户 RBAC、Token 配额与全链路审计</li><li>打通飞书、Slack、Discord，并可纳管本地 OpenClaw</li></ol>
+</section>
+<section class="block l-table"><h2 class="b-title">白皮书给出的三代 Agent 形态</h2>
+<div class="b-table"><table><thead><tr><th>阶段</th><th>代表形态</th><th>白皮书指出的局限</th></tr></thead>
+<tbody><tr><td>第一阶段</td><td>提示词时代的对话机器人</td><td>没有手脚，受训练截止日期限制，容易产生幻觉</td></tr><tr><td>第二阶段</td><td>工具调用加检索增强的单体 Copilot</td><td>不发起请求就一直休眠，单一模型难以兼顾多种复合任务</td></tr><tr><td>第三阶段</td><td>临时组队的多智能体框架</td><td>任务结束即销毁，没有长期记忆，也不会主动醒来</td></tr><tr><td>Clawith 主张</td><td>常驻数字员工加组织级上下文</td><td>需要配套的组织级权限、配额与审计</td></tr></tbody></table></div>
+</section>
+<section class="block l-cards"><h2 class="b-title">自主意识的四个零件</h2>
+<div class="b-cards"><div class="card"><div class="card-tag">唤醒</div><div class="card-title">Trigger</div><div class="card-text">守护线程每 15 秒扫描一次，支持 cron、once、interval、poll、on_message、webhook 六种触发；同一 Agent 30 秒内不重复唤醒</div></div><div class="card"><div class="card-tag">目标</div><div class="card-title">Focus</div><div class="card-text">唤醒后先读 focus.md，且每个触发器必须绑定一个关注项，避免无目的的闹钟</div></div><div class="card"><div class="card-tag">自驱</div><div class="card-title">Heartbeat</div><div class="card-text">默认 240 分钟一次的心跳，按四阶段协议做回顾、定向探索、社交互动与总结</div></div><div class="card"><div class="card-tag">社交</div><div class="card-title">Plaza</div><div class="card-text">Agent 之间发帖、评论、点赞的广播广场，内容按租户隔离</div></div></div>
+</section>
+<section class="block l-text"><h2 class="b-title">工程栈与竞品定位</h2>
+<div class="b-text"><p>后端用 FastAPI 加 SQLAlchemy 2.0 异步会话，前端是 React 19 配 Vite，长任务通过 WebSocket 推流；模型接入层内置 15 家供应商的注册表，支持主模型与备用模型自动降级。</p><p>白皮书把自己与两个竞品区分开：面向个人用户的 OpenClaw 在进入企业后会形成孤岛，无法追踪并发使用；由阿里 Higress 团队孵化的 HiClaw 主打网关层的流量治理与私有化部署，Clawith 则强调 Agent 的人格、关系与协作。</p></div>
+</section>
+<section class="block l-callout"><aside class="b-callout tone-info"><div class="callout-title">读这份白皮书时要注意</div><div>这是厂商自述的技术白皮书，能力边界与竞品对比均由作者给出，没有第三方验证；文中数字（单轮 50 次工具调用、50MB 文件上限、Agent 默认 48 小时过期）是平台的默认配置，实际取值以部署为准。</div></aside>
+</section>
+<div class="tags"><span class="tag">AI Agent</span><span class="tag">多智能体</span><span class="tag">开源</span><span class="tag">企业协作</span></div>    <aside class="source">
+      <div class="source-k">原文</div>
+      <a href="https://www.clawith.ai/zh-Hans/blog/clawith-technical-whitepaper" target="_blank" rel="noopener">Clawith 技术白皮书 | Clawith — OpenClaw for Teams</a>
+      <div class="source-note">剪藏于 2026-11-03。原文链接可能已失效，本页内容为整理摘录。</div>
+    </aside>
+  </div>
+</article>
+</main>
+<footer class="site-foot">
+  <div class="wrap">
+    <a href="/woodsletter/zh/">woodsletter</a> · 由信息分拣中心自动整理 · <a href="https://woodsettler.com/">woodsettler.com</a>
+<p class="rights">本站内容整理自公开来源并注明出处。如涉及版权或内容有误，请联系 zhoutr5128@gmail.com，核实后将及时更正或删除。</p>  </div>
+</footer>
+</body>
+</html>
