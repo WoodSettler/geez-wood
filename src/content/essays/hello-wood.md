@@ -6,7 +6,7 @@ date: 2026-05-22
 type: essay
 tags: [wood, intro]
 readingMin: 3
-featured: true
+featured: false
 ---
 
 

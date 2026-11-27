@@ -1,6 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import AudioCard from '../../components/AudioCard.astro';
+import ShareBar from '../../components/ShareBar.astro';
 import { SITE } from '../../site.config.js';
 import { getCollection } from 'astro:content';
 
@@ -13,6 +14,10 @@ const { entry } = Astro.props;
 const { Content } = await entry.render();
 
 const fmt = (d) => d.toLocaleDateString('en-CA').replace(/-/g, '·');
+const shareDesc = entry.data.subtitle
+  ? (entry.data.summary ? `${entry.data.subtitle} — ${entry.data.summary}` : entry.data.subtitle)
+  : entry.data.summary;
+const canonicalUrl = new URL(`/writing/${entry.slug}/`, Astro.site).href;
 
 // next/prev essays for "continue reading"
 const allEssays = (await getCollection('essays', ({ data }) => !data.draft))
@@ -21,7 +26,15 @@ const idx = allEssays.findIndex((e) => e.slug === entry.slug);
 const nextEssays = [allEssays[idx + 1], allEssays[idx - 1]].filter(Boolean).slice(0, 2);
 ---
 
-<Base current="writing" hoverNav title={entry.data.title} description={entry.data.summary}>
+<Base
+  current="writing"
+  hoverNav
+  title={entry.data.title}
+  description={shareDesc}
+  image={entry.data.cover}
+  ogType="article"
+  publishedTime={entry.data.date.toISOString()}
+>
 
   <div class="progress"><div class="bar" id="bar"></div></div>
 
@@ -49,6 +62,16 @@ const nextEssays = [allEssays[idx + 1], allEssays[idx - 1]].filter(Boolean).slic
         )}
         <a class="back" href="/writing">← 返回 writing</a>
       </footer>
+
+      <ShareBar
+        title={entry.data.title}
+        subtitle={entry.data.subtitle}
+        summary={entry.data.summary}
+        cover={entry.data.cover}
+        dateStr={fmt(entry.data.date)}
+        canonicalUrl={canonicalUrl}
+        slug={entry.slug}
+      />
     </div>
 
     {nextEssays.length > 0 && (

@@ -1,0 +1,543 @@
+---
+/**
+ * ShareBar — 文章页底部极简分享条（复制链接 / LinkedIn / 生成暖纸分享卡片图）。
+ * 分享卡片纯前端 Canvas 渲染（1080×1350），内置可长按识别的原文二维码，适配微信/朋友圈/小红书等。
+ */
+import { SITE } from '../site.config.js';
+
+interface Props {
+  title: string;
+  subtitle?: string | null;
+  summary?: string | null;
+  cover?: string | null;
+  dateStr: string;
+  canonicalUrl: string;
+  slug: string;
+}
+
+const {
+  title,
+  subtitle = '',
+  summary = '',
+  cover = null,
+  dateStr,
+  canonicalUrl,
+  slug,
+} = Astro.props;
+
+const displayUrl = `${SITE.domain}/writing/${slug}`;
+---
+
+<div
+  class="share-bar"
+  data-share-bar
+  data-title={title}
+  data-subtitle={subtitle || ''}
+  data-summary={summary || ''}
+  data-cover={cover || ''}
+  data-date={dateStr}
+  data-url={canonicalUrl}
+  data-display-url={displayUrl}
+  data-author={SITE.name}
+  data-brand={SITE.brand}
+  data-domain={SITE.domain}
+  data-slug={slug}
+>
+  <span class="share-label">share</span>
+  <div class="share-btns">
+    <button class="s-btn" type="button" data-copy-link>复制链接</button>
+    <button class="s-btn accent" type="button" data-open-card>生成分享卡片</button>
+  </div>
+</div>
+
+<dialog class="card-dialog" data-share-dialog aria-label="文章分享卡片预览">
+  <div class="dlg-inner">
+    <div class="dlg-head">
+      <span>分享卡片 · 1080 × 1350（含原文二维码，适合发微信 / 朋友圈）</span>
+      <button class="dlg-x" type="button" data-close-card aria-label="关闭">✕</button>
+    </div>
+
+    <div class="dlg-stage">
+      <canvas class="share-canvas" width="1080" height="1350" data-share-canvas></canvas>
+    </div>
+
+    <div class="dlg-foot">
+      <span class="dlg-tip" data-card-status>右键或点击下方按钮即可保存 / 复制图片</span>
+      <div class="dlg-actions">
+        <button class="s-btn" type="button" data-copy-img>复制图片</button>
+        <button class="s-btn accent" type="button" data-download-img>下载 PNG</button>
+      </div>
+    </div>
+  </div>
+</dialog>
+
+<script>
+  import QRCode from 'qrcode';
+
+  const bar = document.querySelector('[data-share-bar]');
+  const dialog = document.querySelector('[data-share-dialog]');
+  const canvas = document.querySelector('[data-share-canvas]');
+
+  if (bar && dialog && canvas) {
+    const copyLinkBtn = bar.querySelector('[data-copy-link]');
+    const openBtn = bar.querySelector('[data-open-card]');
+    const closeBtn = dialog.querySelector('[data-close-card]');
+    const copyImgBtn = dialog.querySelector('[data-copy-img]');
+    const downloadBtn = dialog.querySelector('[data-download-img]');
+    const statusEl = dialog.querySelector('[data-card-status]');
+
+    const data = {
+      title: bar.getAttribute('data-title') || '',
+      subtitle: bar.getAttribute('data-subtitle') || '',
+      summary: (bar.getAttribute('data-summary') || '').replace(/\s+/g, ' ').trim(),
+      cover: bar.getAttribute('data-cover') || '',
+      date: bar.getAttribute('data-date') || '',
+      url: bar.getAttribute('data-url') || window.location.href,
+      displayUrl: bar.getAttribute('data-display-url') || window.location.host,
+      author: bar.getAttribute('data-author') || 'Tingrui',
+      brand: bar.getAttribute('data-brand') || 'Geez Wood',
+      domain: bar.getAttribute('data-domain') || 'woodsettler.com',
+      slug: bar.getAttribute('data-slug') || 'share',
+    };
+
+    // 1. 复制链接
+    copyLinkBtn?.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(data.url);
+        copyLinkBtn.textContent = '✓ 已复制';
+      } catch {
+        window.prompt('请手动复制文章链接：', data.url);
+      }
+      setTimeout(() => { copyLinkBtn.textContent = '复制链接'; }, 1800);
+    });
+
+    // 工具：加载图片
+    const loadImg = (src) =>
+      new Promise((resolve) => {
+        if (!src) return resolve(null);
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => resolve(img);
+        img.onerror = () => resolve(null);
+        img.src = src;
+      });
+
+    // 工具：中英文混排智能换行
+    function wrapText(ctx, text, maxWidth, maxLines) {
+      if (!text) return [];
+      const lines = [];
+      let line = '';
+      for (const ch of [...text]) {
+        const test = line + ch;
+        if (ctx.measureText(test).width > maxWidth && line.length > 0) {
+          lines.push(line.trim());
+          line = ch;
+          if (lines.length === maxLines) {
+            const last = lines[lines.length - 1];
+            lines[lines.length - 1] = last.slice(0, Math.max(1, last.length - 1)) + '…';
+            return lines;
+          }
+        } else {
+          line = test;
+        }
+      }
+      if (line.trim()) lines.push(line.trim());
+      return lines;
+    }
+
+    // 绘制橘子 Mark
+    function drawMark(ctx, x, y, size) {
+      ctx.save();
+      ctx.translate(x, y);
+      const s = size / 64;
+      ctx.scale(s, s);
+      ctx.fillStyle = 'rgba(229, 90, 48, 0.90)';
+      ctx.beginPath();
+      ctx.arc(32, 34, 20, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = 'rgba(135, 166, 132, 0.90)';
+      ctx.beginPath();
+      ctx.moveTo(32, 34);
+      ctx.quadraticCurveTo(18, 14, 8, 24);
+      ctx.quadraticCurveTo(14, 38, 32, 34);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = 'rgba(232, 163, 61, 0.86)';
+      ctx.beginPath();
+      ctx.moveTo(32, 34);
+      ctx.quadraticCurveTo(48, 16, 58, 28);
+      ctx.quadraticCurveTo(50, 40, 32, 34);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
+    let rendered = false;
+
+    async function renderCard() {
+      if (rendered) return;
+      await document.fonts.ready;
+
+      const W = 1080;
+      const H = 1350;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      // 背景：暖纸底色
+      ctx.fillStyle = '#F4EEDF';
+      ctx.fillRect(0, 0, W, H);
+
+      // 右上角孔版水彩晕染
+      const g1 = ctx.createRadialGradient(840, 180, 20, 840, 180, 420);
+      g1.addColorStop(0, 'rgba(232, 163, 61, 0.22)');
+      g1.addColorStop(1, 'rgba(232, 163, 61, 0)');
+      ctx.fillStyle = g1;
+      ctx.fillRect(0, 0, W, H);
+
+      const g2 = ctx.createRadialGradient(260, 1080, 20, 260, 1080, 380);
+      g2.addColorStop(0, 'rgba(135, 166, 132, 0.16)');
+      g2.addColorStop(1, 'rgba(135, 166, 132, 0)');
+      ctx.fillStyle = g2;
+      ctx.fillRect(0, 0, W, H);
+
+      // 叠加全站纸张噪点纹理
+      const grainImg = await loadImg('/grain.png');
+      if (grainImg) {
+        ctx.save();
+        ctx.globalAlpha = 0.16;
+        ctx.globalCompositeOperation = 'multiply';
+        const pat = ctx.createPattern(grainImg, 'repeat');
+        if (pat) {
+          ctx.fillStyle = pat;
+          ctx.fillRect(0, 0, W, H);
+        }
+        ctx.restore();
+      }
+
+      // 外框细线
+      ctx.strokeStyle = '#D8CFBA';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(40, 40, W - 80, H - 80);
+
+      // 顶栏：Mark + 域名 + 日期
+      drawMark(ctx, 84, 72, 44);
+      ctx.fillStyle = '#6B6357';
+      ctx.font = '500 21px "JetBrains Mono", Consolas, monospace';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(data.domain, 144, 95);
+
+      ctx.textAlign = 'right';
+      ctx.fillText(data.date, W - 84, 95);
+      ctx.textAlign = 'left';
+
+      // 封面图（如有）
+      const coverImg = await loadImg(data.cover);
+      let curY = 166;
+
+      if (coverImg) {
+        const boxX = 84;
+        const boxW = W - 168; // 912
+        const boxH = 490;
+
+        // 孔版硬投影
+        ctx.fillStyle = '#3A332B';
+        ctx.fillRect(boxX + 10, curY + 10, boxW, boxH);
+
+        // object-fit: cover 居中裁切
+        const imgRatio = coverImg.naturalWidth / coverImg.naturalHeight;
+        const boxRatio = boxW / boxH;
+        let sx = 0, sy = 0, sw = coverImg.naturalWidth, sh = coverImg.naturalHeight;
+        if (imgRatio > boxRatio) {
+          sw = sh * boxRatio;
+          sx = (coverImg.naturalWidth - sw) / 2;
+        } else {
+          sh = sw / boxRatio;
+          sy = (coverImg.naturalHeight - sh) / 2;
+        }
+        ctx.drawImage(coverImg, sx, sy, sw, sh, boxX, curY, boxW, boxH);
+
+        ctx.strokeStyle = '#1A1612';
+        ctx.lineWidth = 2.5;
+        ctx.strokeRect(boxX, curY, boxW, boxH);
+
+        curY += boxH + 64;
+      } else {
+        // 无封面时，用番茄红大 § 符号定视觉重心
+        curY = 230;
+        ctx.fillStyle = '#E55A30';
+        ctx.font = 'italic 400 72px "Latitude", "Source Serif 4", Georgia, serif';
+        ctx.textBaseline = 'alphabetic';
+        ctx.fillText('§', 84, curY);
+        curY += 68;
+      }
+
+      // 主标题
+      const textMaxW = W - 168;
+      const titleSize = coverImg ? 58 : 68;
+      ctx.fillStyle = '#1A1612';
+      ctx.font = `400 ${titleSize}px "Latitude", "Source Serif 4", "Songti SC", "SimSun", Georgia, serif`;
+      ctx.textBaseline = 'top';
+      const titleLines = wrapText(ctx, data.title, textMaxW, 2);
+      for (const ln of titleLines) {
+        ctx.fillText(ln, 84, curY);
+        curY += titleSize * 1.24;
+      }
+
+      // 副标题
+      if (data.subtitle) {
+        curY += 10;
+        ctx.fillStyle = '#6B6357';
+        ctx.font = 'italic 400 30px "Source Serif 4", "Songti SC", "SimSun", Georgia, serif';
+        const subLines = wrapText(ctx, data.subtitle, textMaxW, 2);
+        for (const ln of subLines) {
+          ctx.fillText(ln, 84, curY);
+          curY += 44;
+        }
+      }
+
+      // 摘要（在底线之上留足呼吸空间）
+      const footerTop = 1070;
+      if (data.summary && curY + 70 < footerTop) {
+        curY += 22;
+        // 番茄红短装饰线
+        ctx.fillStyle = '#E55A30';
+        ctx.fillRect(84, curY, 44, 3);
+        curY += 26;
+
+        const sumSize = coverImg ? 25 : 28;
+        const lineH = coverImg ? 42 : 48;
+        const maxSummaryLines = Math.max(1, Math.min(coverImg ? 3 : 6, Math.floor((footerTop - 36 - curY) / lineH)));
+        ctx.fillStyle = '#3A332B';
+        ctx.font = `400 ${sumSize}px "Source Serif 4", "Songti SC", "SimSun", Georgia, serif`;
+        const sumLines = wrapText(ctx, data.summary, textMaxW, maxSummaryLines);
+        for (const ln of sumLines) {
+          ctx.fillText(ln, 84, curY);
+          curY += lineH;
+        }
+      }
+
+      // 底部横线
+      ctx.strokeStyle = '#1A1612';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(84, footerTop);
+      ctx.lineTo(W - 84, footerTop);
+      ctx.stroke();
+
+      // 底部左侧署名与短址
+      ctx.fillStyle = '#1A1612';
+      ctx.font = '700 24px "Director", "Source Serif 4", sans-serif';
+      ctx.textBaseline = 'top';
+      ctx.fillText(`${data.author} · ${data.brand}`, 84, footerTop + 36);
+
+      ctx.fillStyle = '#6B6357';
+      ctx.font = '400 20px "JetBrains Mono", Consolas, monospace';
+      const urlLines = wrapText(ctx, data.displayUrl, W - 360, 2);
+      urlLines.forEach((ln, idx) => {
+        ctx.fillText(ln, 84, footerTop + 76 + idx * 28);
+      });
+
+      ctx.fillStyle = '#9C9385';
+      ctx.font = '400 18px "JetBrains Mono", Consolas, monospace';
+      ctx.fillText('长按识别二维码阅读全文', 84, footerTop + 148);
+
+      // 底部右侧真实可扫二维码
+      const qrSize = 152;
+      const qrX = W - 84 - qrSize;
+      const qrY = footerTop + 26;
+      const qrCanvas = document.createElement('canvas');
+      await QRCode.toCanvas(qrCanvas, data.url, {
+        width: qrSize,
+        margin: 2,
+        color: { dark: '#1A1612', light: '#FBF7EC' },
+        errorCorrectionLevel: 'M',
+      });
+      ctx.drawImage(qrCanvas, qrX, qrY, qrSize, qrSize);
+      ctx.strokeStyle = '#D8CFBA';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(qrX, qrY, qrSize, qrSize);
+
+      rendered = true;
+    }
+
+    // 打开弹窗
+    openBtn?.addEventListener('click', async () => {
+      dialog.showModal();
+      if (statusEl) statusEl.textContent = '正在渲染分享卡片…';
+      await renderCard();
+      if (statusEl) statusEl.textContent = '右键或点击下方按钮即可保存 / 复制图片';
+    });
+
+    closeBtn?.addEventListener('click', () => dialog.close());
+    dialog.addEventListener('click', (e) => {
+      if (e.target === dialog) dialog.close();
+    });
+
+    // 下载 PNG
+    downloadBtn?.addEventListener('click', () => {
+      const a = document.createElement('a');
+      a.download = `geez-wood-${data.slug}.png`;
+      a.href = canvas.toDataURL('image/png');
+      a.click();
+      if (statusEl) statusEl.textContent = '✓ 已开始下载 PNG 分享卡片';
+    });
+
+    // 复制图片到剪贴板（桌面端直接粘贴到微信/领英）
+    copyImgBtn?.addEventListener('click', () => {
+      canvas.toBlob(async (blob) => {
+        if (!blob) return;
+        try {
+          await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+          if (statusEl) statusEl.textContent = '✓ 图片已复制，可直接 Ctrl+V 粘贴到微信或领英';
+        } catch {
+          if (statusEl) statusEl.textContent = '当前浏览器不支持直接复制图片，请点右侧「下载 PNG」';
+        }
+      }, 'image/png');
+    });
+  }
+</script>
+
+<style>
+  .share-bar {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px dotted var(--rule);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .share-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+  }
+
+  .share-btns {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .s-btn {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 5px 10px;
+    border: 1px solid var(--rule);
+    background: var(--paper);
+    color: var(--ink-2);
+    text-decoration: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: background var(--dur-base), color var(--dur-base), border-color var(--dur-base);
+  }
+
+  .s-btn:hover {
+    border-color: var(--ink);
+    color: var(--ink);
+    background: var(--paper-deep);
+  }
+
+  .s-btn.accent {
+    border-color: var(--dye-tomato);
+    color: var(--dye-tomato);
+    background: var(--tomato-wash);
+  }
+
+  .s-btn.accent:hover {
+    background: var(--dye-tomato);
+    color: var(--paper);
+  }
+
+  /* ─── 分享卡片弹窗 ─── */
+  .card-dialog {
+    padding: 0;
+    border: 1.5px solid var(--ink);
+    background: var(--paper-soft);
+    color: var(--ink);
+    box-shadow: 10px 10px 0 rgba(26, 22, 18, 0.25);
+    max-width: min(500px, calc(100vw - 32px));
+    width: 100%;
+  }
+
+  .card-dialog::backdrop {
+    background: rgba(26, 22, 18, 0.48);
+    backdrop-filter: blur(3px);
+  }
+
+  .dlg-inner {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .dlg-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--rule);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-3);
+  }
+
+  .dlg-x {
+    border: 0;
+    background: transparent;
+    color: var(--ink-3);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 2px 6px;
+  }
+
+  .dlg-x:hover {
+    color: var(--dye-tomato);
+  }
+
+  .dlg-stage {
+    padding: 18px;
+    background: var(--paper-deep);
+    display: flex;
+    justify-content: center;
+  }
+
+  .share-canvas {
+    width: 100%;
+    max-width: 360px;
+    height: auto;
+    display: block;
+    border: 1px solid var(--rule);
+    box-shadow: 0 8px 24px rgba(26, 22, 18, 0.14);
+  }
+
+  .dlg-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 12px 16px;
+    border-top: 1px solid var(--rule);
+  }
+
+  .dlg-tip {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-3);
+  }
+
+  .dlg-actions {
+    display: inline-flex;
+    gap: 8px;
+  }
+</style>

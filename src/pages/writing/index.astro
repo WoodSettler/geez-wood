@@ -58,6 +58,7 @@ const stamps = { essay: '¶ essay', field: '▾ field note', project: '◇ proje
           {featured.data.featured && <div class="stamp">★ editor's pick · 本周一篇</div>}
           <div class="eb">{featured.data.type} · {fmt(featured.data.date)}{featured.data.readingMin && ` · ${featured.data.readingMin} min`}</div>
           <h2><a href={`/writing/${featured.slug}`}>{featured.data.title}</a></h2>
+          {featured.data.subtitle && <p class="subtitle">{featured.data.subtitle}</p>}
           <div class="byline">
             <span>by {SITE.name}</span>
             <span class="dot"></span>
@@ -141,6 +142,7 @@ const stamps = { essay: '¶ essay', field: '▾ field note', project: '◇ proje
   .featured .body h2 { font-family: var(--font-display); font-style: italic; font-weight: 400; font-size: clamp(36px, 4.6vw, 60px); line-height: 0.98; margin: 0 0 14px; text-wrap: balance; }
   .featured .body h2 a { color: var(--ink); text-decoration: none; }
   .featured .body h2 a:hover { color: var(--dye-tomato); }
+  .featured .body .subtitle { font-family: var(--font-body); font-style: italic; font-size: 18px; line-height: 1.45; color: var(--ink-3); margin: 0 0 14px; }
   .featured .body .byline { display: flex; align-items: center; gap: 12px; font-family: var(--font-h); font-size: 13px; color: var(--ink-3); margin-bottom: 16px; }
   .featured .body .byline .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--ink-3); }
   .featured .body .lead { font-family: var(--font-body); font-size: 17px; line-height: 1.65; color: var(--ink-2); margin: 0 0 22px; max-width: 56ch; }
