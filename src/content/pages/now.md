@@ -10,6 +10,7 @@ facets:
     items:
       - 把这个网站从设计稿变成 Astro 项目
       - 我想把橘子logo做成一个吉祥物
+      - How about搞个Agent剃刀原则
   read:
     label: 在读
     eb: reading
