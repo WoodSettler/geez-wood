@@ -1,0 +1,525 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Geez Wood · 本地写作工作台</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <style>
+    @font-face { font-family: 'Director'; src: url('/fonts/Director-Regular.woff2') format('woff2'); font-weight: 400; font-display: swap; }
+    @font-face { font-family: 'Director'; src: url('/fonts/Director-Bold.woff2') format('woff2'); font-weight: 700; font-display: swap; }
+
+    :root {
+      --paper: #F4EEDF;
+      --paper-deep: #EAE3CF;
+      --paper-soft: #FBF7EC;
+      --ink: #1A1612;
+      --ink-2: #3A332B;
+      --ink-3: #6B6357;
+      --ink-4: #9C9385;
+      --rule: #D8CFBA;
+      --tomato: #E55A30;
+      --tomato-wash: rgba(229, 90, 48, 0.14);
+      --sage: #4A6A47;
+      --sage-wash: rgba(135, 166, 132, 0.22);
+      --plum: #6E3F75;
+      --plum-wash: rgba(110, 63, 117, 0.14);
+      --font-h: 'Director', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', Consolas, ui-monospace, monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0; height: 100%; overflow: hidden;
+      background: var(--paper); color: var(--ink);
+      font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+    }
+
+    .app { display: flex; flex-direction: column; height: 100vh; }
+
+    /* ─── 顶部工作台控制条 ─── */
+    .topbar {
+      height: 50px; flex-shrink: 0;
+      background: var(--paper); border-bottom: 1.5px solid var(--ink);
+      padding: 0 14px;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    }
+
+    .tb-left, .tb-mid, .tb-right {
+      display: flex; align-items: center; gap: 8px; min-width: 0;
+    }
+
+    .brand {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: var(--font-h); font-weight: 700; font-size: 14px;
+      color: var(--ink); text-decoration: none; white-space: nowrap;
+      padding-right: 8px; border-right: 1px solid var(--rule);
+    }
+    .brand small { font-family: var(--font-mono); font-weight: 400; font-size: 10px; color: var(--ink-3); }
+
+    .seg {
+      display: inline-flex; border: 1px solid var(--rule); background: var(--paper-soft); border-radius: 3px; overflow: hidden;
+    }
+    .seg button {
+      border: 0; background: transparent; color: var(--ink-2); cursor: pointer;
+      font-family: var(--font-mono); font-size: 11px; padding: 5px 10px; white-space: nowrap;
+      transition: background 150ms, color 150ms;
+    }
+    .seg button:hover { background: var(--paper-deep); color: var(--ink); }
+    .seg button.active { background: var(--ink); color: var(--paper); }
+
+    .preview-ctl {
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .preview-ctl select {
+      font-family: var(--font-mono); font-size: 11px; color: var(--ink);
+      background: var(--paper-soft); border: 1px solid var(--rule); border-radius: 3px;
+      padding: 5px 8px; max-width: 240px; cursor: pointer; outline: none;
+    }
+    .preview-ctl select:focus { border-color: var(--tomato); }
+
+    .btn {
+      font-family: var(--font-mono); font-size: 11px; padding: 5px 10px;
+      border: 1px solid var(--rule); border-radius: 3px;
+      background: var(--paper-soft); color: var(--ink-2);
+      cursor: pointer; text-decoration: none; white-space: nowrap;
+      display: inline-flex; align-items: center; gap: 5px;
+      transition: background 150ms, color 150ms, border-color 150ms;
+    }
+    .btn:hover { border-color: var(--ink); color: var(--ink); background: var(--paper-deep); }
+    .btn.primary {
+      border-color: var(--tomato); background: var(--tomato); color: var(--paper); font-weight: 600;
+    }
+    .btn.primary:hover { background: #cc4a22; border-color: #cc4a22; }
+    .btn.primary:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn.saved-chip {
+      border-color: var(--plum); color: var(--plum); background: var(--plum-wash);
+      animation: pop 240ms ease-out;
+    }
+    .btn.saved-chip:hover { background: var(--plum); color: var(--paper); }
+
+    @keyframes pop { from { transform: scale(0.95); opacity: 0.4; } to { transform: scale(1); opacity: 1; } }
+
+    .badge {
+      font-family: var(--font-mono); font-size: 11px; padding: 4px 9px; border-radius: 99px;
+      white-space: nowrap; border: 1px solid var(--rule); color: var(--ink-3); background: var(--paper-soft);
+    }
+    .badge.dirty { border-color: var(--tomato); color: var(--tomato); background: var(--tomato-wash); }
+    .badge.clean { border-color: var(--sage); color: var(--sage); background: var(--sage-wash); }
+    .badge.warn  { border-color: #b42318; color: #b42318; background: rgba(180, 35, 24, 0.12); font-weight: 600; }
+
+    /* ─── 主工作区：分屏 / 单屏 ─── */
+    .workspace {
+      flex: 1; min-height: 0; display: flex; position: relative;
+      background: var(--paper-deep);
+    }
+
+    .pane {
+      height: 100%; display: flex; flex-direction: column; min-width: 0;
+    }
+    .pane iframe {
+      flex: 1; width: 100%; height: 100%; border: 0; background: #fff;
+    }
+
+    .pane-edit { flex: 1.12; border-right: 1.5px solid var(--ink); }
+    .pane-preview { flex: 0.88; background: var(--paper); }
+    .pane-preview iframe { background: var(--paper); }
+
+    body[data-mode="edit"] .pane-preview { display: none; }
+    body[data-mode="edit"] .pane-edit { flex: 1; border-right: 0; }
+    body[data-mode="preview"] .pane-edit { display: none; }
+    body[data-mode="preview"] .pane-preview { flex: 1; }
+
+    .pane-bar {
+      height: 28px; flex-shrink: 0; padding: 0 12px;
+      background: var(--paper-deep); border-bottom: 1px solid var(--rule);
+      display: flex; align-items: center; justify-content: space-between;
+      font-family: var(--font-mono); font-size: 10px; color: var(--ink-3);
+    }
+    .pane-bar b { color: var(--ink); font-weight: 600; }
+
+    /* ─── 发布确认弹窗 ─── */
+    dialog.pub-dlg {
+      padding: 0; border: 1.5px solid var(--ink); background: var(--paper-soft); color: var(--ink);
+      box-shadow: 10px 10px 0 rgba(26, 22, 18, 0.22);
+      width: min(560px, calc(100vw - 32px)); max-height: calc(100vh - 48px);
+    }
+    dialog.pub-dlg::backdrop { background: rgba(26, 22, 18, 0.45); backdrop-filter: blur(2px); }
+
+    .dlg-head {
+      padding: 14px 18px; border-bottom: 1px solid var(--rule);
+      display: flex; align-items: center; justify-content: space-between;
+      font-family: var(--font-h); font-size: 15px; font-weight: 700;
+    }
+    .dlg-body {
+      padding: 16px 18px; display: flex; flex-direction: column; gap: 14px;
+      overflow-y: auto; max-height: 68vh;
+    }
+    .dlg-foot {
+      padding: 12px 18px; border-top: 1px solid var(--rule);
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    }
+
+    .warn-box {
+      padding: 10px 12px; border: 1px solid #b42318; background: rgba(180, 35, 24, 0.08);
+      color: #8a1c14; font-size: 12px; line-height: 1.55; font-family: var(--font-mono);
+    }
+    .change-list {
+      margin: 0; padding: 8px 10px; list-style: none; max-height: 160px; overflow-y: auto;
+      background: var(--paper); border: 1px solid var(--rule);
+      font-family: var(--font-mono); font-size: 11px; line-height: 1.65;
+    }
+    .change-list li { display: flex; gap: 8px; }
+    .change-list .st { color: var(--tomato); width: 22px; flex-shrink: 0; font-weight: 600; }
+
+    .field label {
+      display: block; font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); margin-bottom: 6px;
+    }
+    .field input {
+      width: 100%; padding: 8px 10px; font-size: 13px;
+      background: var(--paper); border: 1px solid var(--ink-3); color: var(--ink); outline: none;
+    }
+    .field input:focus { border-color: var(--tomato); }
+
+    .log-box {
+      margin: 0; padding: 10px 12px; background: #1f1b18; color: #f4eedf;
+      font-family: var(--font-mono); font-size: 11px; line-height: 1.55;
+      white-space: pre-wrap; word-break: break-word; max-height: 200px; overflow-y: auto;
+      border-radius: 3px;
+    }
+    .ok-banner {
+      padding: 10px 12px; border: 1px solid var(--sage); background: var(--sage-wash);
+      color: var(--sage); font-size: 13px; line-height: 1.5;
+    }
+    .ok-banner a { color: var(--ink); font-weight: 600; }
+
+    @media (max-width: 960px) {
+      .tb-mid { display: none; }
+    }
+  </style>
+</head>
+<body data-mode="split">
+  <div class="app">
+    <header class="topbar">
+      <div class="tb-left">
+        <a class="brand" href="/studio">
+          <svg viewBox="0 0 64 64" width="22" height="22" aria-hidden="true">
+            <circle cx="32" cy="34" r="20" fill="#E55A30" opacity="0.9" />
+            <path d="M32 34 Q 18 14 8 24 Q 14 38 32 34 Z" fill="#87A684" opacity="0.9" />
+            <path d="M32 34 Q 48 16 58 28 Q 50 40 32 34 Z" fill="#E8A33D" opacity="0.86" />
+          </svg>
+          Geez Wood <small>Studio</small>
+        </a>
+
+        <div class="seg" role="group" aria-label="切换视图">
+          <button type="button" data-mode-btn="split" class="active">分屏</button>
+          <button type="button" data-mode-btn="edit">专注编辑</button>
+          <button type="button" data-mode-btn="preview">全屏预览</button>
+        </div>
+
+        <button class="btn saved-chip" type="button" id="saved-chip" hidden></button>
+      </div>
+
+      <div class="tb-mid">
+        <div class="preview-ctl">
+          <select id="preview-select" aria-label="选择预览页面">
+            <option value="/">首页 /</option>
+            <option value="/writing">Writing 列表</option>
+            <option value="/collections">Collections</option>
+            <option value="/now">Now</option>
+            <option value="/about">About</option>
+          </select>
+          <button class="btn" type="button" id="btn-reload-preview" title="刷新预览">↻ 刷新</button>
+          <a class="btn" id="btn-open-tab" href="/" target="_blank" rel="noopener">↗ 新标签</a>
+        </div>
+      </div>
+
+      <div class="tb-right">
+        <span class="badge" id="status-badge">检测中…</span>
+        <button class="btn" type="button" id="btn-pull" title="拉取远端最新提交">↓ 同步</button>
+        <button class="btn primary" type="button" id="btn-publish">发布上线</button>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <section class="pane pane-edit">
+        <div class="pane-bar">
+          <span><b>后台编辑</b> · /keystatic（点右上角 Save 写回本地文件）</span>
+          <a href="/keystatic" target="_blank" style="color:inherit;">独立打开 ↗</a>
+        </div>
+        <iframe id="frame-edit" src="/keystatic" title="Keystatic 后台"></iframe>
+      </section>
+
+      <section class="pane pane-preview">
+        <div class="pane-bar">
+          <span><b>实时预览</b> · <span id="preview-path">/</span>（草稿文章本地直接可见）</span>
+          <span id="preview-sync-hint">自动监听保存</span>
+        </div>
+        <iframe id="frame-preview" src="/" title="前台实时预览"></iframe>
+      </section>
+    </main>
+  </div>
+
+  <!-- 一键验证并发布弹窗 -->
+  <dialog class="pub-dlg" id="pub-dlg">
+    <div class="dlg-head">
+      <span>验证并发布到 woodsettler.com</span>
+      <button class="btn" type="button" id="dlg-close">关闭</button>
+    </div>
+    <div class="dlg-body">
+      <div class="warn-box" id="dlg-warn" hidden></div>
+      <div class="ok-banner" id="dlg-ok" hidden></div>
+
+      <div>
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--ink-3);margin-bottom:6px;">
+          本次将发布的改动（<span id="dlg-count">0</span> 项）：
+        </div>
+        <ul class="change-list" id="dlg-changes"></ul>
+      </div>
+
+      <div class="field">
+        <label for="commit-msg">提交备注（留空自动生成）</label>
+        <input id="commit-msg" type="text" placeholder="例如：发布新文章 / 更新 now 近况" />
+      </div>
+
+      <pre class="log-box" id="dlg-log" hidden></pre>
+    </div>
+    <div class="dlg-foot">
+      <span style="font-family:var(--font-mono);font-size:10px;color:var(--ink-3);">
+        自动执行：大文件检查 → npm run build → git push
+      </span>
+      <button class="btn primary" type="button" id="dlg-confirm">开始校验并推送</button>
+    </div>
+  </dialog>
+
+  <script>
+    const framePreview = document.getElementById('frame-preview');
+    const previewSelect = document.getElementById('preview-select');
+    const previewPathEl = document.getElementById('preview-path');
+    const btnOpenTab = document.getElementById('btn-open-tab');
+    const btnReload = document.getElementById('btn-reload-preview');
+    const statusBadge = document.getElementById('status-badge');
+    const savedChip = document.getElementById('saved-chip');
+    const btnPull = document.getElementById('btn-pull');
+    const btnPublish = document.getElementById('btn-publish');
+
+    const dlg = document.getElementById('pub-dlg');
+    const dlgClose = document.getElementById('dlg-close');
+    const dlgConfirm = document.getElementById('dlg-confirm');
+    const dlgWarn = document.getElementById('dlg-warn');
+    const dlgOk = document.getElementById('dlg-ok');
+    const dlgCount = document.getElementById('dlg-count');
+    const dlgChanges = document.getElementById('dlg-changes');
+    const dlgLog = document.getElementById('dlg-log');
+    const commitInput = document.getElementById('commit-msg');
+
+    let currentPreviewUrl = '/';
+    let lastStatus = null;
+    let lastSnapshotKey = '';
+
+    // 视图模式切换
+    document.querySelectorAll('[data-mode-btn]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.body.dataset.mode = btn.dataset.modeBtn;
+        document.querySelectorAll('[data-mode-btn]').forEach((b) => b.classList.toggle('active', b === btn));
+      });
+    });
+
+    function navigatePreview(url, forceReload = false) {
+      currentPreviewUrl = url;
+      previewPathEl.textContent = decodeURIComponent(url);
+      btnOpenTab.href = url;
+      if ([...previewSelect.options].some((o) => o.value === url)) {
+        previewSelect.value = url;
+      }
+      if (forceReload) {
+        const sep = url.includes('?') ? '&' : '?';
+        framePreview.src = `${url}${sep}_r=${Date.now()}`;
+      } else {
+        framePreview.src = url;
+      }
+    }
+
+    previewSelect.addEventListener('change', () => navigatePreview(previewSelect.value, false));
+    btnReload.addEventListener('click', () => navigatePreview(currentPreviewUrl, true));
+
+    savedChip.addEventListener('click', () => {
+      const target = savedChip.dataset.url;
+      if (target) {
+        if (document.body.dataset.mode === 'edit') {
+          document.body.dataset.mode = 'split';
+          document.querySelectorAll('[data-mode-btn]').forEach((b) => b.classList.toggle('active', b.dataset.modeBtn === 'split'));
+        }
+        navigatePreview(target, true);
+        savedChip.hidden = true;
+      }
+    });
+
+    function rebuildSelectOptions(essays) {
+      const prev = currentPreviewUrl;
+      const baseOpts = [
+        { value: '/', label: '首页 /' },
+        { value: '/writing', label: 'Writing 列表' },
+        { value: '/collections', label: 'Collections' },
+        { value: '/now', label: 'Now' },
+        { value: '/about', label: 'About' },
+      ];
+      previewSelect.innerHTML = '';
+      const g1 = document.createElement('optgroup');
+      g1.label = '主要页面';
+      baseOpts.forEach((o) => {
+        const opt = document.createElement('option');
+        opt.value = o.value;
+        opt.textContent = o.label;
+        g1.appendChild(opt);
+      });
+      previewSelect.appendChild(g1);
+
+      if (essays && essays.length > 0) {
+        const g2 = document.createElement('optgroup');
+        g2.label = '文章（含草稿）';
+        essays.forEach((e) => {
+          const opt = document.createElement('option');
+          opt.value = e.url;
+          const prefix = `${e.dirty ? '● ' : ''}${e.draft ? '[草稿] ' : ''}`;
+          opt.textContent = `${prefix}${e.title}`;
+          g2.appendChild(opt);
+        });
+        previewSelect.appendChild(g2);
+      }
+
+      if ([...previewSelect.options].some((o) => o.value === prev)) {
+        previewSelect.value = prev;
+      }
+    }
+
+    async function refreshStatus(isPoll = false) {
+      try {
+        const res = await fetch('/api/studio/status', { cache: 'no-store' });
+        const st = await res.json();
+        if (!st.ok) return;
+
+        const snapKey = st.changes.map((c) => `${c.code}:${c.file}:${Math.round(c.mtimeMs)}`).join('|');
+        const changed = isPoll && lastSnapshotKey && snapKey !== lastSnapshotKey;
+
+        lastStatus = st;
+        rebuildSelectOptions(st.essays);
+
+        if (st.oversized.length > 0) {
+          statusBadge.className = 'badge warn';
+          statusBadge.textContent = `⚠ ${st.oversized.length} 个文件超 20MB`;
+        } else if (st.clean) {
+          statusBadge.className = 'badge clean';
+          statusBadge.textContent = '✓ 已与线上同步';
+        } else {
+          statusBadge.className = 'badge dirty';
+          statusBadge.textContent = `● ${st.changes.length} 项未发布`;
+        }
+
+        // 检测到刚刚在后台保存了内容：弹出快捷预览胶囊，若右侧正停在该页则自动刷新
+        if (changed && st.recentEdited) {
+          savedChip.textContent = `刚保存：${st.recentEdited.label} → 预览`;
+          savedChip.dataset.url = st.recentEdited.url;
+          savedChip.hidden = false;
+          if (currentPreviewUrl === st.recentEdited.url || currentPreviewUrl === '/writing' || currentPreviewUrl === '/') {
+            navigatePreview(currentPreviewUrl, true);
+          }
+        }
+        lastSnapshotKey = snapKey;
+      } catch {}
+    }
+
+    // 同步远端
+    btnPull.addEventListener('click', async () => {
+      const orig = btnPull.textContent;
+      btnPull.disabled = true;
+      btnPull.textContent = '同步中…';
+      try {
+        const res = await fetch('/api/studio/pull', { method: 'POST' });
+        const data = await res.json();
+        alert(data.ok ? `远端同步完成：\n${data.log}` : `同步未完成：\n${data.error}`);
+        await refreshStatus(false);
+      } finally {
+        btnPull.disabled = false;
+        btnPull.textContent = orig;
+      }
+    });
+
+    // 打开发布确认弹窗
+    btnPublish.addEventListener('click', async () => {
+      await refreshStatus(false);
+      const st = lastStatus;
+      if (!st) return;
+
+      dlgOk.hidden = true;
+      dlgLog.hidden = true;
+      dlgLog.textContent = '';
+      commitInput.value = '';
+      dlgCount.textContent = String(st.changes.length);
+
+      dlgChanges.innerHTML = '';
+      if (st.changes.length === 0) {
+        dlgChanges.innerHTML = '<li style="color:var(--ink-3);">当前工作区干净，没有未发布的改动。</li>';
+      } else {
+        st.changes.forEach((c) => {
+          const li = document.createElement('li');
+          li.innerHTML = `<span class="st">${c.code}</span><span>${c.file}</span>`;
+          dlgChanges.appendChild(li);
+        });
+      }
+
+      if (st.oversized.length > 0) {
+        dlgWarn.hidden = false;
+        dlgWarn.textContent = '以下文件超过 20 MB（Cloudflare Pages 硬上限 25 MiB），发布已被拦截：\n'
+          + st.oversized.map((f) => `• ${f.path} (${f.sizeMB} MB)`).join('\n');
+        dlgConfirm.disabled = true;
+      } else {
+        dlgWarn.hidden = true;
+        dlgConfirm.disabled = st.changes.length === 0;
+      }
+
+      dlg.showModal();
+    });
+
+    dlgClose.addEventListener('click', () => dlg.close());
+
+    dlgConfirm.addEventListener('click', async () => {
+      dlgConfirm.disabled = true;
+      dlgConfirm.textContent = '构建并推送中…';
+      dlgWarn.hidden = true;
+      dlgOk.hidden = true;
+      dlgLog.hidden = false;
+      dlgLog.textContent = '▶ 正在校验文件并运行 npm run build，通常需要 5–15 秒…';
+
+      try {
+        const res = await fetch('/api/studio/publish', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: commitInput.value.trim() }),
+        });
+        const data = await res.json();
+        dlgLog.textContent = data.log || data.message || data.error || '';
+
+        if (data.ok && !data.noop) {
+          dlgOk.hidden = false;
+          dlgOk.innerHTML = `✓ 已推送提交 <code>${data.commit}</code>！Cloudflare Pages 约 1 分钟内自动上线 → <a href="${data.liveUrl}" target="_blank" rel="noopener">${data.liveUrl} ↗</a>`;
+          await refreshStatus(false);
+        } else if (!data.ok) {
+          dlgWarn.hidden = false;
+          dlgWarn.textContent = data.error || '发布失败，请查看下方日志。';
+        }
+      } catch (err) {
+        dlgWarn.hidden = false;
+        dlgWarn.textContent = '请求异常：' + err.message;
+      } finally {
+        dlgConfirm.textContent = '开始校验并推送';
+        await refreshStatus(false);
+        dlgConfirm.disabled = !lastStatus || lastStatus.clean || lastStatus.oversized.length > 0;
+      }
+    });
+
+    refreshStatus(false);
+    setInterval(() => refreshStatus(true), 2500);
+  </script>
+</body>
+</html>

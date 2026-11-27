@@ -6,7 +6,8 @@ import { SITE } from '../../site.config.js';
 import { getCollection } from 'astro:content';
 
 export async function getStaticPaths() {
-  const essays = await getCollection('essays', ({ data }) => !data.draft);
+  const showDrafts = import.meta.env.DEV;
+  const essays = await getCollection('essays', ({ data }) => showDrafts || !data.draft);
   return essays.map((e) => ({ params: { slug: e.slug }, props: { entry: e } }));
 }
 
@@ -41,6 +42,7 @@ const nextEssays = [allEssays[idx + 1], allEssays[idx - 1]].filter(Boolean).slic
   <main class="shell">
     <div class="article-wrap">
       <header class="article-head">
+        {entry.data.draft && <div class="draft-pill">DRAFT · 仅本地预览可见，构建发布时会自动隐藏</div>}
         {entry.data.featured && <div class="stamp">★ editor's pick</div>}
         <div class="eb">
           {fmt(entry.data.date)} · {entry.data.type}
@@ -117,6 +119,13 @@ const nextEssays = [allEssays[idx + 1], allEssays[idx - 1]].filter(Boolean).slic
   }
 
   .article-head { margin-bottom: 28px; }
+  .article-head .draft-pill {
+    display: inline-block;
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em;
+    color: var(--dye-plum); background: var(--plum-wash);
+    border: 1px dashed var(--dye-plum); padding: 4px 10px; border-radius: 2px;
+    margin-bottom: 14px;
+  }
   .article-head .stamp {
     display: inline-flex; align-items: center;
     font-family: var(--font-h); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
