@@ -2,7 +2,7 @@
   "name": "geez-wood",
   "type": "module",
   "version": "0.1.0",
-  "description": "Ting's Geez Wood — a small, slow place online.",
+  "description": "Tingrui's Geez Wood — a small, slow place online.",
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",

@@ -1,209 +1,551 @@
 ---
 /**
- * 首页 — 一屏橘子林, 无文字。
- * 前排 4 棵树是入口 (writing / collections / now / about), 只靠 aria-label 与悬停提示说明去向。
- * 横屏、竖屏各一套构图, 用 CSS 按屏幕方向切换。
+ * 首页 — 极简个人名片与站点索引页。
+ * 独立于内页顶栏 (<Base bare>), 沿用全站暖纸 + 孔版印刷视觉系统:
+ * 名片头 (Mark + 身份 + 联系) → 01–04 站点索引 → 全站最近更新混排。
  */
 import Base from '../layouts/Base.astro';
-import { NAV } from '../site.config.js';
+import Mark from '../components/Mark.astro';
+import { SITE, NAV } from '../site.config.js';
+import { getCollection } from 'astro:content';
 
-// 固定种子的伪随机, 保证每次构建画面一致
-function rng(seed) {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6D2B79F5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-const LEAF   = ['#87A684', '#7A9A76', '#9DB894', '#6F8F6B'];
-const ORANGE = ['#E55A30', '#E8A33D', '#EE7A3A', '#E55A30'];
-const TRUNK  = '#5C4636';
-
-// 生成一棵树的几何数据: 树干、树冠圆团、橘子
-function makeTree({ x, y, s, seed, fruit = 8 }) {
-  const r = rng(seed);
-  const cy = y - 235 * s;                       // 树冠中心
-  const crown = [];
-  const blobs = 8;
-  for (let i = 0; i < blobs; i++) {
-    const ang = (i / blobs) * Math.PI * 2 + r() * 0.6;
-    const dist = (40 + r() * 45) * s;
-    crown.push({
-      cx: x + Math.cos(ang) * dist * 1.15,
-      cy: cy + Math.sin(ang) * dist * 0.8,
-      r: (62 + r() * 30) * s,
-      fill: LEAF[Math.floor(r() * LEAF.length)],
-    });
+// 集合为空时 getCollection 可能抛错, 统一兜底
+const safe = async (name, filter) => {
+  try {
+    return filter ? await getCollection(name, filter) : await getCollection(name);
+  } catch {
+    return [];
   }
-  crown.push({ cx: x, cy, r: 80 * s, fill: LEAF[0] });
-
-  const fruits = [];
-  for (let i = 0; i < fruit; i++) {
-    const ang = r() * Math.PI * 2;
-    const dist = Math.sqrt(r()) * 105 * s;
-    fruits.push({
-      cx: x + Math.cos(ang) * dist * 1.2,
-      cy: cy + 10 * s + Math.sin(ang) * dist * 0.8,
-      r: (11 + r() * 5) * s,
-      fill: ORANGE[Math.floor(r() * ORANGE.length)],
-    });
-  }
-
-  const b = y, t = y - 175 * s, w = 13 * s;
-  const trunk = `M ${x - w} ${b} Q ${x - w * 0.6} ${b - 90 * s} ${x - w * 0.45} ${t} L ${x + w * 0.45} ${t} Q ${x + w * 0.6} ${b - 90 * s} ${x + w} ${b} Z`;
-  const branches = [
-    `M ${x} ${b - 110 * s} Q ${x - 30 * s} ${b - 150 * s} ${x - 55 * s} ${b - 195 * s}`,
-    `M ${x} ${b - 130 * s} Q ${x + 28 * s} ${b - 165 * s} ${x + 50 * s} ${b - 210 * s}`,
-  ];
-  return { x, y, s, crown, fruits, trunk, branches };
-}
-
-// 地上的落果
-function makeFallen(list) {
-  return list.map(([cx, cy, rr]) => ({ cx, cy, r: rr }));
-}
-
-// 入口树对应的页面, 顺序与 NAV 一致
-const doors = NAV.map((n) => ({ href: n.href, label: n.label }));
-
-// ── 横屏构图 1600 × 900 ─────────────────────────────────
-const wide = {
-  vb: '0 0 1600 900',
-  sun: { cx: 1240, cy: 210, r: 110 },
-  ground: 'M 0 640 Q 400 600 800 630 T 1600 615 L 1600 900 L 0 900 Z',
-  ground2: 'M 0 760 Q 500 720 900 755 T 1600 740 L 1600 900 L 0 900 Z',
-  back: [
-    [150, 655, 0.5, 11], [470, 640, 0.46, 12], [800, 650, 0.52, 13],
-    [1110, 638, 0.48, 14], [1450, 648, 0.5, 15],
-  ].map(([x, y, s, seed]) => makeTree({ x, y, s, seed, fruit: 5 })),
-  front: [
-    [380, 815, 1.0, 21], [680, 845, 1.08, 22], [960, 825, 1.02, 23], [1250, 850, 1.1, 24],
-  ].map(([x, y, s, seed]) => makeTree({ x, y, s, seed })),
-  fallen: makeFallen([[450, 838, 9], [520, 852, 7], [790, 868, 8], [1060, 846, 9], [1330, 872, 7]]),
 };
 
-// ── 竖屏构图 900 × 1600 ─────────────────────────────────
-const tall = {
-  vb: '0 0 900 1600',
-  sun: { cx: 650, cy: 330, r: 105 },
-  ground: 'M 0 760 Q 250 725 450 750 T 900 735 L 900 1600 L 0 1600 Z',
-  ground2: 'M 0 1180 Q 300 1140 520 1175 T 900 1160 L 900 1600 L 0 1600 Z',
-  back: [
-    [130, 775, 0.42, 31], [450, 765, 0.46, 32], [780, 772, 0.42, 33],
-  ].map(([x, y, s, seed]) => makeTree({ x, y, s, seed, fruit: 4 })),
-  front: [
-    [280, 1060, 0.95, 41], [630, 1100, 0.98, 42], [300, 1450, 1.05, 43], [620, 1490, 1.08, 44],
-  ].map(([x, y, s, seed]) => makeTree({ x, y, s, seed })),
-  fallen: makeFallen([[370, 1080, 8], [700, 1120, 7], [400, 1472, 9], [520, 1500, 7]]),
+const essays = (await safe('essays', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const books = await safe('books');
+const listening = await safe('listening');
+const shelfCount = books.length + listening.length;
+
+const ESSAY_KIND = { essay: '文章', field: '随记', project: '项目', letter: '来信' };
+const LISTEN_KIND = { album: '专辑', track: '单曲', podcast: '播客' };
+
+const fmtDate = (d) =>
+  d instanceof Date && !Number.isNaN(d.valueOf())
+    ? d.toLocaleDateString('en-CA').replace(/-/g, '·')
+    : '—';
+
+// 全站最近更新混排 (essays + books + listening), 按日期倒序取最近 6 条
+const recent = [
+  ...essays.map((e) => ({
+    date: e.data.date,
+    ts: e.data.date.valueOf(),
+    kind: ESSAY_KIND[e.data.type] ?? '文章',
+    tone: 'tomato',
+    title: e.data.title,
+    sub: e.data.subtitle ?? '',
+    href: `/writing/${e.slug}`,
+  })),
+  ...books.map((b) => ({
+    date: b.data.date ?? null,
+    ts: b.data.date?.valueOf() ?? 0,
+    kind: '书',
+    tone: 'sage',
+    title: b.data.titleZh || b.data.title,
+    sub: b.data.author,
+    href: '/collections',
+  })),
+  ...listening.map((t) => ({
+    date: t.data.date ?? null,
+    ts: t.data.date?.valueOf() ?? 0,
+    kind: LISTEN_KIND[t.data.kind] ?? '专辑',
+    tone: 'plum',
+    title: t.data.title,
+    sub: t.data.artist,
+    href: t.data.link ?? '/collections',
+  })),
+]
+  .sort((a, b) => b.ts - a.ts)
+  .slice(0, 6);
+
+// 01–04 栏目索引, 顺序与 NAV 保持一致
+const INDEX_META = {
+  writing:     { note: '写完并公开的思考与记录', count: `${essays.length} 篇` },
+  collections: { note: '书、专辑与声音',         count: `${shelfCount} 件` },
+  now:         { note: '最近在做、在读、在听',   count: 'snapshot' },
+  about:       { note: '关于这个人',             count: SITE.location },
 };
 
-const scenes = [
-  { key: 'wide', ...wide, par: 'xMidYMax slice' },
-  { key: 'tall', ...tall, par: 'xMidYMid slice' },
-];
+const indexItems = NAV.map((item, i) => ({
+  ...item,
+  num: String(i + 1).padStart(2, '0'),
+  note: INDEX_META[item.id]?.note ?? '',
+  count: INDEX_META[item.id]?.count ?? '',
+}));
 ---
 
 <Base bare title={null}>
-  <main class="grove">
-    {scenes.map((sc) => (
-      <svg class={`scene ${sc.key}`} viewBox={sc.vb} preserveAspectRatio={sc.par} role="img" aria-label="Geez Wood · 橘子林">
-        <defs>
-          <filter id={`wc-${sc.key}`} x="-20%" y="-20%" width="140%" height="140%">
-            <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="2" seed="5" result="n" />
-            <feDisplacementMap in="SourceGraphic" in2="n" scale="16" />
-          </filter>
-          <filter id={`soft-${sc.key}`} x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="18" />
-          </filter>
-        </defs>
+  <main class="sheet">
+    <div class="wash" aria-hidden="true"></div>
 
-        <!-- 天光与太阳 -->
-        <circle cx={sc.sun.cx} cy={sc.sun.cy} r={sc.sun.r * 2.2} fill="var(--sun-wash)" filter={`url(#soft-${sc.key})`} />
-        <circle class="sun" cx={sc.sun.cx} cy={sc.sun.cy} r={sc.sun.r} fill="#E8A33D" opacity="0.55" filter={`url(#wc-${sc.key})`} />
+    <!-- 1. 名片头 -->
+    <header class="card-head">
+      <div class="top-bar">
+        <span class="brand-lockup">
+          <Mark size={38} />
+          <span class="eyebrow">{SITE.domain}</span>
+        </span>
+        <span class="loc">{SITE.location} · est. {SITE.foundedYear}</span>
+      </div>
 
-        <!-- 地面 -->
-        <path d={sc.ground} fill="var(--sage-wash)" filter={`url(#wc-${sc.key})`} />
-        <path d={sc.ground2} fill="var(--sage-wash)" filter={`url(#wc-${sc.key})`} />
+      <h1>
+        <span class="who">{SITE.name}</span>
+        <span class="sep" aria-hidden="true">/</span>
+        <span class="brand">{SITE.brand}<span class="dot">.</span></span>
+      </h1>
 
-        <!-- 远处的树, 只做背景 -->
-        <g class="back" opacity="0.45" aria-hidden="true">
-          {sc.back.map((t) => (
-            <g>
-              <path d={t.trunk} fill={TRUNK} />
-              <g filter={`url(#wc-${sc.key})`}>
-                {t.crown.map((c) => <circle cx={c.cx} cy={c.cy} r={c.r} fill={c.fill} opacity="0.8" />)}
-              </g>
-              {t.fruits.map((f) => <circle cx={f.cx} cy={f.cy} r={f.r} fill={f.fill} />)}
-            </g>
-          ))}
-        </g>
+      <div class="contacts" aria-label="联系方式与订阅">
+        <a href={`mailto:${SITE.email}`}>{SITE.email}</a>
+        {SITE.github && (
+          <>
+            <span class="mid" aria-hidden="true">·</span>
+            <a href={SITE.github} target="_blank" rel="noopener noreferrer">github</a>
+          </>
+        )}
+        <span class="mid" aria-hidden="true">·</span>
+        <a href="/rss.xml">rss</a>
+      </div>
+    </header>
 
-        <!-- 前排 4 棵树 = 入口 -->
-        {sc.front.map((t, i) => (
-          <a class="tree" href={doors[i].href} aria-label={doors[i].label} style={`--d:${i * -1.7}s`}>
-            <title>{doors[i].label}</title>
-            <ellipse cx={t.x} cy={t.y + 4} rx={95 * t.s} ry={14 * t.s} fill="rgba(58,51,43,0.12)" />
-            <g class="sway" style={`transform-origin:${t.x}px ${t.y}px`}>
-              <path d={t.trunk} fill={TRUNK} />
-              {t.branches.map((d) => <path d={d} stroke={TRUNK} stroke-width={7 * t.s} stroke-linecap="round" fill="none" />)}
-              <g class="crown" filter={`url(#wc-${sc.key})`}>
-                {t.crown.map((c) => <circle cx={c.cx} cy={c.cy} r={c.r} fill={c.fill} opacity="0.88" />)}
-              </g>
-              <g class="fruits">
-                <g filter={`url(#wc-${sc.key})`}>
-                  {t.fruits.map((f) => <circle cx={f.cx} cy={f.cy} r={f.r} fill={f.fill} />)}
-                </g>
-              </g>
-            </g>
-          </a>
+    <!-- 2. 站点索引 (01–04) -->
+    <section class="block" aria-labelledby="sec-index">
+      <div class="sec-head">
+        <h2 id="sec-index"><span class="sym">§</span> index</h2>
+        <span class="hint">{indexItems.length} rooms</span>
+      </div>
+
+      <ol class="dir">
+        {indexItems.map((it) => (
+          <li>
+            <a href={it.href}>
+              <span class="num">{it.num}</span>
+              <span class="label">{it.label}</span>
+              <span class="note">{it.note}</span>
+              <span class="meta">
+                {it.count && <span class="cnt">{it.count}</span>}
+                <span class="arr" aria-hidden="true">→</span>
+              </span>
+            </a>
+          </li>
         ))}
+      </ol>
+    </section>
 
-        <!-- 落果 -->
-        <g aria-hidden="true">
-          {sc.fallen.map((f) => <circle cx={f.cx} cy={f.cy} r={f.r} fill="#E55A30" opacity="0.85" />)}
-        </g>
-      </svg>
-    ))}
+    <!-- 3. 最近更新 -->
+    <section class="block" aria-labelledby="sec-recent">
+      <div class="sec-head">
+        <h2 id="sec-recent"><span class="sym">§</span> recent</h2>
+        <a class="more" href="/writing">all writing →</a>
+      </div>
+
+      {recent.length > 0 ? (
+        <ul class="feed">
+          {recent.map((it) => (
+            <li>
+              <a href={it.href}>
+                <time class="date" datetime={it.date ? it.date.toISOString().slice(0, 10) : undefined}>
+                  {fmtDate(it.date)}
+                </time>
+                <span class={`tag t-${it.tone}`}>{it.kind}</span>
+                <span class="entry">
+                  <span class="title">{it.title}</span>
+                  {it.sub && <span class="sub">{it.sub}</span>}
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p class="empty">林子里暂时很安静。</p>
+      )}
+    </section>
+
+    <!-- 4. 极简版权尾注 -->
+    <footer class="colophon">
+      <span>© {SITE.foundedYear} {SITE.name} · CC BY-NC 4.0</span>
+      <span>{SITE.signoff}</span>
+    </footer>
   </main>
 </Base>
 
 <style>
-  .grove {
-    position: fixed; inset: 0;
+  .sheet {
+    position: relative;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: clamp(48px, 8vh, 88px) 32px 56px;
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* 角落柔和孔版水彩晕染 */
+  .wash {
+    position: fixed;
+    top: -120px;
+    right: -120px;
+    width: min(560px, 85vw);
+    height: min(560px, 85vw);
+    pointer-events: none;
+    z-index: -1;
+    opacity: 0.5;
+    filter: url(#dg-wc) blur(4px);
     background:
-      radial-gradient(120% 70% at 75% 15%, var(--paper-soft) 0%, transparent 60%),
-      var(--paper);
-    overflow: hidden;
-  }
-  .scene { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-  .scene.tall { display: none; }
-  @media (orientation: portrait) {
-    .scene.wide { display: none; }
-    .scene.tall { display: block; }
+      radial-gradient(48% 48% at 62% 38%, var(--sun-wash) 0%, transparent 72%),
+      radial-gradient(44% 44% at 38% 62%, var(--sage-wash) 0%, transparent 72%),
+      radial-gradient(36% 36% at 72% 64%, var(--tomato-wash) 0%, transparent 70%);
   }
 
-  .tree { cursor: pointer; outline: none; }
-  .tree .sway {
-    transform-box: view-box;
-    animation: sway 7s ease-in-out infinite;
-    animation-delay: var(--d);
+  /* ─── 1. 名片头 ─────────────────────────────────────── */
+  .card-head {
+    padding-bottom: 32px;
+    border-bottom: 1.5px solid var(--ink);
   }
-  .tree .fruits { transition: filter 400ms var(--ease-soft); }
-  .tree:hover .sway, .tree:focus-visible .sway {
-    animation-duration: 1.6s;
-  }
-  .tree:hover .fruits, .tree:focus-visible .fruits { filter: saturate(1.35) brightness(1.08); }
-  .tree:focus-visible .crown { stroke: var(--dye-tomato); stroke-width: 3; }
 
-  @keyframes sway {
-    0%, 100% { transform: rotate(-0.8deg); }
-    50%      { transform: rotate(0.8deg); }
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 28px;
   }
-  @media (prefers-reduced-motion: reduce) {
-    .tree .sway { animation: none; }
+
+  .brand-lockup {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .eyebrow,
+  .loc {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--ink-3);
+  }
+
+  .card-head h1 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(44px, 7.5vw, 72px);
+    line-height: 0.96;
+    letter-spacing: -0.025em;
+    margin: 0 0 20px;
+    color: var(--ink);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 0.22em;
+  }
+
+  .card-head h1 .who {
+    font-family: var(--font-sign);
+    color: var(--dye-tomato);
+    font-size: 1.04em;
+    letter-spacing: 0;
+  }
+
+  .card-head h1 .sep {
+    color: var(--rule);
+    font-size: 0.62em;
+    font-weight: 300;
+  }
+
+  .card-head h1 .brand {
+    font-style: italic;
+  }
+
+  .card-head h1 .dot {
+    font-style: normal;
+    color: var(--dye-sun);
+  }
+
+  .contacts {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 10px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--ink-3);
+  }
+
+  .contacts a {
+    color: var(--ink-2);
+    text-decoration: none;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 1px;
+    transition: color var(--dur-base), border-color var(--dur-base);
+  }
+
+  .contacts a:hover {
+    color: var(--dye-tomato);
+    border-color: var(--dye-tomato);
+  }
+
+  .contacts .mid {
+    color: var(--ink-4);
+  }
+
+  /* ─── 区块标题 ──────────────────────────────────────── */
+  .block {
+    margin-top: 40px;
+  }
+
+  .sec-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 14px;
+  }
+
+  .sec-head h2 {
+    font-family: var(--font-h);
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0;
+  }
+
+  .sec-head .sym {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 14px;
+    color: var(--dye-tomato);
+    margin-right: 4px;
+  }
+
+  .sec-head .hint,
+  .sec-head .more {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: var(--ink-4);
+    text-decoration: none;
+  }
+
+  .sec-head .more:hover {
+    color: var(--dye-tomato);
+  }
+
+  /* ─── 2. 站点索引 ───────────────────────────────────── */
+  .dir {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border-top: 1px solid var(--rule);
+  }
+
+  .dir li {
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .dir a {
+    display: grid;
+    grid-template-columns: 32px 132px 1fr auto;
+    align-items: baseline;
+    gap: 12px;
+    padding: 15px 6px;
+    text-decoration: none;
+    color: inherit;
+    transition: background var(--dur-base) var(--ease-soft);
+  }
+
+  .dir a:hover {
+    background: var(--paper-soft);
+  }
+
+  .dir .num {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-4);
+    transition: color var(--dur-base);
+  }
+
+  .dir a:hover .num {
+    color: var(--dye-tomato);
+  }
+
+  .dir .label {
+    font-family: var(--font-h);
+    font-weight: 700;
+    font-size: 17px;
+    color: var(--ink);
+    letter-spacing: -0.005em;
+    transition: color var(--dur-base);
+  }
+
+  .dir a:hover .label {
+    color: var(--dye-tomato);
+  }
+
+  .dir .note {
+    font-family: var(--font-body);
+    font-style: italic;
+    font-size: 15px;
+    color: var(--ink-3);
+  }
+
+  .dir .meta {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 10px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-4);
+    white-space: nowrap;
+  }
+
+  .dir .arr {
+    display: inline-block;
+    color: var(--ink-3);
+    transition: transform var(--dur-base) var(--ease-out), color var(--dur-base);
+  }
+
+  .dir a:hover .arr {
+    transform: translateX(4px);
+    color: var(--dye-tomato);
+  }
+
+  /* ─── 3. 最近更新 ───────────────────────────────────── */
+  .feed {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border-top: 1px solid var(--rule);
+  }
+
+  .feed li {
+    border-bottom: 1px dotted var(--rule);
+  }
+
+  .feed a {
+    display: grid;
+    grid-template-columns: 92px 46px 1fr;
+    align-items: baseline;
+    gap: 14px;
+    padding: 13px 6px;
+    text-decoration: none;
+    color: inherit;
+    transition: background var(--dur-base) var(--ease-soft);
+  }
+
+  .feed a:hover {
+    background: var(--paper-soft);
+  }
+
+  .feed .date {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-4);
+    white-space: nowrap;
+  }
+
+  .feed .tag {
+    justify-self: start;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    line-height: 1.4;
+    padding: 1px 6px;
+    border-radius: 2px;
+    border: 1px solid currentColor;
+    white-space: nowrap;
+  }
+
+  .feed .t-tomato { color: var(--dye-tomato); background: var(--tomato-wash); }
+  .feed .t-sage   { color: #4A6A47;           background: var(--sage-wash); }
+  .feed .t-plum   { color: var(--dye-plum);   background: var(--plum-wash); }
+
+  .feed .entry {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 10px;
+    min-width: 0;
+  }
+
+  .feed .title {
+    font-family: var(--font-body);
+    font-size: 17px;
+    line-height: 1.45;
+    color: var(--ink);
+    transition: color var(--dur-base);
+  }
+
+  .feed a:hover .title {
+    color: var(--dye-tomato);
+  }
+
+  .feed .sub {
+    font-family: var(--font-body);
+    font-style: italic;
+    font-size: 14px;
+    color: var(--ink-3);
+  }
+
+  .empty {
+    font-family: var(--font-body);
+    font-style: italic;
+    font-size: 15px;
+    color: var(--ink-3);
+    margin: 12px 0 0;
+  }
+
+  /* ─── 4. 页脚尾注 ───────────────────────────────────── */
+  .colophon {
+    margin-top: auto;
+    padding-top: 56px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-4);
+  }
+
+  /* ─── 响应式 ────────────────────────────────────────── */
+  @media (max-width: 640px) {
+    .sheet {
+      padding: 36px 22px 44px;
+    }
+
+    .dir a {
+      grid-template-columns: 28px 1fr auto;
+      row-gap: 4px;
+    }
+
+    .dir .note {
+      grid-column: 2 / -1;
+      font-size: 14px;
+    }
+
+    .feed a {
+      grid-template-columns: auto auto 1fr;
+      row-gap: 6px;
+      column-gap: 10px;
+    }
+
+    .feed .entry {
+      grid-column: 1 / -1;
+    }
+
+    .colophon {
+      flex-direction: column;
+      gap: 6px;
+      padding-top: 44px;
+    }
   }
 </style>

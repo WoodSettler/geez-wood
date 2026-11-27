@@ -8,7 +8,7 @@ Last updated: 2026·11 · v0.2 (极简版)
 
 ## Brand
 
-- Name: **Ting**
+- Name: **Tingrui**
 - Brand: **Geez Wood**
 - Domain: **woodsettler.com**
 - Metaphor: **wood** (橘子林, not garden)
@@ -17,17 +17,17 @@ Last updated: 2026·11 · v0.2 (极简版)
 
 ## v0.2 极简原则
 
-- 只放 Ting 自己生产的内容; 建站时大模型预设的示范内容与示范页一律下架。
+- 只放 Tingrui 自己生产的内容; 建站时大模型预设的示范内容与示范页一律下架。
 - 下架的东西移到 `draft/archive/` (本地保留, 不进 git), 需要时再搬回来。
-- 首页一屏、无文字: 一片橘子林插画, 树就是入口。
+- 首页为独立极简个人名片与站点索引页: 无顶栏 nav, 沿用暖纸 + 孔版印刷视觉系统, 露出 01–04 栏目索引与全站最近更新。
 
 ---
 
-## Top navigation (4 items, 首页不显示)
+## Top navigation (4 items, 首页以索引区块呈现)
 
 | Page | URL | Component | Purpose |
 |---|---|---|---|
-| home | `/` | `pages/index.astro` | 一屏橘子林插画, 无文字, 无 nav / footer; 4 棵树分别链到下面 4 页 (仅 `aria-label` + `title` 悬停提示) |
+| home | `/` | `pages/index.astro` | 独立极简个人名片与索引页 (`bare`), 无顶栏 nav / 独立 footer; 含橘子 Mark 名片头、01–04 栏目索引与全站最近更新混排 (`essays` + `books` + `listening`) |
 | writing | `/writing` | `pages/writing/index.astro` | 文章列表 |
 | collections | `/collections` | `pages/collections/index.astro` | 书与专辑统一陈列, 用标签区分 |
 | now | `/now` | `pages/now.astro` | 4-facet snapshot |

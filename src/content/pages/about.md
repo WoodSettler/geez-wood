@@ -7,7 +7,8 @@ taglines:
   - '生成式AI的出现给了我创作和实现的刷子。我想这跟如今已位列名人堂的那些名字当初接触到互联网和编程是一样的。'
   - '如饥似渴是一种多么宝贵而神奇的状态。'
 heroQuote: '"Keep Looking, Don''t Settle"<br/><br/>"Stay Hungry, Stay Foolish"'
-quoteSource: '这是乔布斯对很多学生说的话。'
+quoteSource: '这是乔布斯对很多学生说的话。它的意思是，'
+quoteNote: '多出去转转，别老在办公室呆着。<br/>在办公室呆太晚的结果就是，<br/><em>hungry</em>，并且骂自己 <em>foolish</em>。'
 factsheet:
   - { dt: 'name', dd: '{name}' }
   - { dt: 'where', dd: '{location} · 一个老楼步梯顶层' }

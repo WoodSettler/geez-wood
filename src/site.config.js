@@ -5,7 +5,7 @@
 
 export const SITE = {
   // ─── identity ───────────────────────────────────
-  name:        'Ting',
+  name:        'Tingrui',
   brand:       'Geez Wood',
   tagline:     'a small, slow wood — notes, code, half-thoughts',
 
@@ -23,8 +23,7 @@ export const SITE = {
   mastodon:    '',
 
   // ─── footer copy ────────────────────────────────
-  copyright:   '© 2026 Ting · CC BY-NC 4.0 · v0.1 · still figuring out',
-  brandBlurb:  'Ting 的 Geez Wood · 一片慢的小林子, 收着我读的、做的、还没想清楚的东西。',
+  copyright:   '© 2026 Tingrui · CC BY-NC 4.0 · v0.1 · still figuring out',
   signoff:     '— tended in 上海 since 2026',
   typeset:     'set in Latitude, Director & Source Serif',
 };

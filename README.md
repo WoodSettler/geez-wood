@@ -1,7 +1,7 @@
 # Geez Wood
 
 > a small, slow wood — notes, code, half-thoughts.
-> by **Ting** · [woodsettler.com](https://woodsettler.com)
+> by **Tingrui** · [woodsettler.com](https://woodsettler.com)
 
 This is the source for [woodsettler.com](https://woodsettler.com), built with [Astro](https://astro.build).
 

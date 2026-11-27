@@ -208,6 +208,7 @@ export default config({
         taglines: fields.array(fields.text({ label: 'tagline (含 HTML)', multiline: true }), { label: 'Taglines', itemLabel: (p) => p.value }),
         heroQuote: fields.text({ label: '名言 (含 HTML)', multiline: true }),
         quoteSource: fields.text({ label: '名言出处' }),
+        quoteNote: fields.text({ label: '名言批注 (含 HTML)', multiline: true }),
         factsheet: fields.array(
           fields.object({ dt: fields.text({ label: '标签' }), dd: fields.text({ label: '值 (含 HTML/占位符)' }) }, { label: '行' }),
           { label: 'Factsheet', itemLabel: (p) => p.fields.dt.value }

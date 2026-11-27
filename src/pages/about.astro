@@ -35,6 +35,7 @@ const { Content } = await entry.render();
       <aside class="rhs">
         <blockquote class="hero-quote" set:html={page.heroQuote}></blockquote>
         <small class="quote-source">{page.quoteSource}</small>
+        {page.quoteNote && <p class="quote-note" set:html={page.quoteNote}></p>}
       </aside>
     </section>
 
@@ -80,11 +81,13 @@ const { Content } = await entry.render();
   .crumb b { color: var(--ink); font-weight: 500; }
   .crumb .right { font-family: var(--font-mono); font-size: 11px; color: var(--ink-4); letter-spacing: 0.06em; }
 
-  .about-hero { padding: 56px 0 88px; position: relative; max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1.5fr 1fr; gap: 24px 56px; align-items: start; }
+  .about-hero { padding: 56px 0 88px; position: relative; max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: 1.12fr 1fr; gap: 24px 48px; align-items: start; }
   .about-hero > h1 { grid-column: 1 / -1; }
   .about-hero .rhs { align-self: center; }
-  .about-hero .hero-quote { font-family: var(--font-display); font-style: italic; font-weight: 400; font-size: clamp(20px, 2.2vw, 26px); line-height: 1.35; color: var(--ink); border-left: 3px solid var(--dye-tomato); padding-left: 22px; margin: 0 0 14px; max-width: 26ch; }
-  .about-hero .quote-source { display: block; font-family: var(--font-h); font-size: 11px; letter-spacing: 0.08em; color: var(--ink-3); padding-left: 22px; font-weight: 500; }
+  .about-hero .hero-quote { font-family: var(--font-display); font-style: italic; font-weight: 400; font-size: clamp(18px, 1.75vw, 22px); line-height: 1.4; color: var(--ink); border-left: 3px solid var(--dye-tomato); padding-left: 22px; margin: 0 0 18px; }
+  .about-hero .quote-source { display: block; font-family: var(--font-h); font-size: 12px; letter-spacing: 0.04em; color: var(--ink-3); padding-left: 25px; margin-bottom: 16px; font-weight: 500; }
+  .about-hero .quote-note { margin: 0; border-left: 3px solid var(--dye-sun); padding-left: 22px; font-family: var(--font-body); font-size: clamp(18px, 1.75vw, 22px); line-height: 1.85; color: var(--ink); }
+  .about-hero .quote-note :global(em) { font-family: var(--font-display); font-style: italic; font-size: 1.04em; color: var(--dye-tomato); }
   .about-hero .wash-bg { position: absolute; right: -80px; top: 0; bottom: -40px; width: 60%; z-index: -1; filter: url(#dg-wc) blur(2px); opacity: 0.6; background: radial-gradient(50% 60% at 70% 30%, var(--sun-wash) 0%, transparent 70%), radial-gradient(60% 50% at 30% 70%, var(--sage-wash) 0%, transparent 70%); }
   .about-hero h1 { font-family: var(--font-display); font-weight: 400; font-style: normal; font-size: clamp(56px, 8vw, 116px); line-height: 0.92; letter-spacing: -0.025em; margin: 0 0 26px; text-wrap: balance; color: var(--ink); }
   .about-hero h1 .name { font-family: var(--font-sign); font-style: normal; color: var(--dye-tomato); font-size: 1.05em; letter-spacing: 0; padding: 0 4px; }
