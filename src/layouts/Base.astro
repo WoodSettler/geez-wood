@@ -9,7 +9,8 @@ const {
   title,
   description = SITE.tagline,
   current = '',
-  bare = false,   // true: 不渲染 nav 与 footer (首页用)
+  bare = false,     // true: 不渲染 nav 与 footer (首页用)
+  hoverNav = false, // true: 顶栏默认隐藏，鼠标移到页面顶部时浮现 (文章详情页用)
 } = Astro.props;
 
 const pageTitle = title ? `${title} · ${SITE.name}` : `${SITE.name} · ${SITE.brand}`;
@@ -37,7 +38,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site).href;
 </head>
 <body>
   <SvgFilters />
-  {!bare && <Nav current={current} />}
+  {!bare && <Nav current={current} hoverReveal={hoverNav} />}
   <slot />
   {!bare && <Footer />}
 </body>

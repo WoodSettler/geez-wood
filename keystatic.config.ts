@@ -60,8 +60,37 @@ export default config({
         readingMin: fields.integer({ label: '阅读分钟' }),
         featured: fields.checkbox({ label: 'Featured' }),
         draft: fields.checkbox({ label: 'Draft' }),
-        cover: fields.text({ label: '封面路径 (public 相对)' }),
-        body: fields.markdoc({ label: '正文', extension: 'md' }),
+        cover: fields.image({
+          label: '封面图 (可选)',
+          directory: 'public/covers/essays',
+          publicPath: '/covers/essays/',
+        }),
+        music: fields.object(
+          {
+            title: fields.text({ label: '曲名' }),
+            artist: fields.text({ label: '艺人 (可选)' }),
+            netease: fields.text({
+              label: '网易云单曲链接',
+              description: '粘贴网易云单曲链接（如 https://music.163.com/song?id=...）或外链代码',
+            }),
+            audio: fields.file({
+              label: '本地 MP3 (可选，适合自有/无版权音频)',
+              directory: 'public/audio/essays',
+              publicPath: '/audio/essays/',
+            }),
+          },
+          { label: '配乐 (可选)' }
+        ),
+        body: fields.markdoc({
+          label: '正文',
+          extension: 'md',
+          options: {
+            image: {
+              directory: 'public/images/essays',
+              publicPath: '/images/essays/',
+            },
+          },
+        }),
       },
     }),
 
@@ -99,7 +128,16 @@ export default config({
           publicPath: '/covers/listening/',
         }),
         coverTint: fields.select({ label: '兜底色块', options: tintOptions, defaultValue: 'n' }),
-        link: fields.text({ label: '点击跳转 URL' }),
+        listenUrl: fields.text({
+          label: '收听链接 (网易云 / 流媒体)',
+          description: '在 /collections 卡片上显示「♪ 去听 ↗」外跳按钮',
+        }),
+        audio: fields.file({
+          label: '本地 MP3 试听 (可选)',
+          directory: 'public/audio/listening',
+          publicPath: '/audio/listening/',
+        }),
+        link: fields.text({ label: '关联站内文章 URL (可选，如 /writing/爱是昂贵的)' }),
         date: fields.date({ label: '加入日期' }),
       },
     }),
@@ -127,7 +165,12 @@ export default config({
         rating: fields.integer({ label: '评分 0-5' }),
         progress: fields.integer({ label: '进度 %' }),
         note: fields.text({ label: '笔记', multiline: true }),
-        coverTint: fields.select({ label: '封面色块', options: tintOptions, defaultValue: 'n' }),
+        cover: fields.image({
+          label: '封面图 (可选)',
+          directory: 'public/covers/books',
+          publicPath: '/covers/books/',
+        }),
+        coverTint: fields.select({ label: '兜底色块', options: tintOptions, defaultValue: 'n' }),
         date: fields.date({ label: '日期' }),
       },
     }),

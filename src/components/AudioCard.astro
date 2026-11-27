@@ -1,0 +1,444 @@
+---
+/**
+ * AudioCard — 文章详情页一体化「封面 + 配乐」浮嵌卡（方案一）。
+ * - 同时有封面与配乐：合并成一张实体暖纸卡片，浮嵌在正文右上角，文字环绕；
+ * - 仅有封面：只渲染画框封面图浮嵌；
+ * - 仅有配乐：只渲染紧凑暖纸配乐卡浮嵌；
+ * - 网易云单曲点击「▶ 播放」后懒加载官方外链 iframe，收起即卸载停播；
+ * - 本地 MP3 渲染自绘暖纸迷你播放条。
+ */
+interface Props {
+  music?: {
+    title?: string | null;
+    artist?: string | null;
+    netease?: string | null;
+    audio?: string | null;
+  } | null;
+  cover?: string | null;
+  coverAlt?: string;
+}
+
+const { music = null, cover = null, coverAlt = '' } = Astro.props;
+
+function parseNetease(input?: string | null) {
+  if (!input) return null;
+  const raw = input.trim();
+  if (!raw) return null;
+
+  const typeToKind: Record<string, 'song' | 'album' | 'playlist'> = {
+    '0': 'playlist',
+    '1': 'album',
+    '2': 'song',
+  };
+  const kindToType = { playlist: 0, album: 1, song: 2 } as const;
+
+  let kind: 'song' | 'album' | 'playlist' | null = null;
+  let id: string | null = null;
+
+  const mPlayer =
+    raw.match(/outchain\/player\?[^"'\s]*?type=(\d+)&(?:amp;)?id=(\d+)/i) ||
+    raw.match(/outchain\/player\?[^"'\s]*?id=(\d+)&(?:amp;)?type=(\d+)/i);
+  const mOutchain = raw.match(/outchain\/(\d+)\/(\d+)/i);
+  const mPage =
+    raw.match(/(song|album|playlist)\?[^#\s"']*id=(\d+)/i) ||
+    raw.match(/(song|album|playlist)\/(\d+)/i);
+
+  if (mPlayer) {
+    const isTypeFirst = /type=\d+&(?:amp;)?id=\d+/i.test(mPlayer[0]);
+    const t = isTypeFirst ? mPlayer[1] : mPlayer[2];
+    id = isTypeFirst ? mPlayer[2] : mPlayer[1];
+    kind = typeToKind[t] ?? null;
+  } else if (mOutchain) {
+    kind = typeToKind[mOutchain[1]] ?? null;
+    id = mOutchain[2];
+  } else if (mPage) {
+    kind = mPage[1].toLowerCase() as 'song' | 'album' | 'playlist';
+    id = mPage[2];
+  }
+
+  if (kind === 'song' && id) {
+    return {
+      canEmbed: true,
+      embedUrl: `https://music.163.com/outchain/player?type=${kindToType.song}&id=${id}&auto=0&height=66`,
+      openUrl: `https://music.163.com/#/song?id=${id}`,
+    };
+  }
+  if (kind && id) {
+    return {
+      canEmbed: false,
+      embedUrl: null,
+      openUrl: `https://music.163.com/#/${kind}?id=${id}`,
+    };
+  }
+  if (/^https?:\/\//i.test(raw)) {
+    return { canEmbed: false, embedUrl: null, openUrl: raw };
+  }
+  return null;
+}
+
+const coverSrc = cover?.trim() || null;
+const audioSrc = music?.audio?.trim() || null;
+const netease = parseNetease(music?.netease);
+const hasMusic = Boolean(audioSrc || netease);
+const shouldRender = Boolean(coverSrc || hasMusic);
+const title = music?.title?.trim() || (audioSrc ? '本地音频' : '配乐');
+const artist = music?.artist?.trim() || '';
+---
+
+{shouldRender && (
+  <aside class="media-unit" aria-label={hasMusic ? '封面与配乐' : '文章封面'}>
+    {coverSrc && (
+      <div class:list={['cover-wrap', { 'has-dock': hasMusic }]}>
+        <img src={coverSrc} alt={coverAlt || title} loading="eager" />
+      </div>
+    )}
+
+    {hasMusic && (
+      <div class="player-dock">
+        {audioSrc ? (
+          <div class="local-player" data-local-player>
+            <div class="pd-meta">
+              <div class="pd-eb">♪ local audio</div>
+              <div class="pd-title">
+                {title}
+                {artist && <span>{artist}</span>}
+              </div>
+            </div>
+            <div class="lp-ctrl">
+              <button class="lp-btn" type="button" data-lp-toggle aria-label="播放或暂停">▶</button>
+              <div class="lp-track">
+                <div class="lp-bar" data-lp-bar role="slider" aria-label="播放进度" tabindex="0">
+                  <div class="lp-fill" data-lp-fill></div>
+                </div>
+                <div class="lp-sub">
+                  <span class="lp-time" data-lp-time>00:00 / --:--</span>
+                  {netease?.openUrl && (
+                    <a class="ext-mini" href={netease.openUrl} target="_blank" rel="noopener noreferrer">
+                      网易云 ↗
+                    </a>
+                  )}
+                </div>
+              </div>
+            </div>
+            <audio src={audioSrc} preload="metadata" data-lp-audio></audio>
+          </div>
+        ) : netease ? (
+          <div class="netease-dock" data-netease-card>
+            <div class="pd-meta">
+              <div class="pd-eb">♪ soundtrack</div>
+              <div class="pd-title">
+                {title}
+                {artist && <span>{artist}</span>}
+              </div>
+            </div>
+            <div class="pd-btns">
+              {netease.canEmbed && (
+                <button
+                  class="btn-mini accent"
+                  type="button"
+                  data-ne-toggle
+                  data-embed-url={netease.embedUrl}
+                  aria-expanded="false"
+                >
+                  ▶ 播放
+                </button>
+              )}
+              <a
+                class:list={['btn-mini', { accent: !netease.canEmbed }]}
+                href={netease.openUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                网易云 ↗
+              </a>
+            </div>
+            {netease.canEmbed && (
+              <div class="pd-embed" data-ne-slot hidden>
+                <div data-ne-mount></div>
+              </div>
+            )}
+          </div>
+        ) : null}
+      </div>
+    )}
+  </aside>
+)}
+
+<script>
+  // 1) 网易云单曲折叠懒加载（收起时卸载 iframe 立即停播）
+  document.querySelectorAll('[data-netease-card]').forEach((card) => {
+    const btn = card.querySelector('[data-ne-toggle]');
+    const slot = card.querySelector('[data-ne-slot]');
+    const mount = card.querySelector('[data-ne-mount]');
+    if (!btn || !slot || !mount) return;
+
+    btn.addEventListener('click', () => {
+      const opening = slot.hasAttribute('hidden');
+      if (opening) {
+        const url = btn.getAttribute('data-embed-url');
+        mount.innerHTML = `<iframe src="${url}" height="86" frameborder="no" border="0" marginwidth="0" marginheight="0" referrerpolicy="no-referrer" allow="autoplay"></iframe>`;
+        slot.removeAttribute('hidden');
+        btn.setAttribute('aria-expanded', 'true');
+        btn.textContent = '▾ 收起';
+      } else {
+        mount.innerHTML = '';
+        slot.setAttribute('hidden', '');
+        btn.setAttribute('aria-expanded', 'false');
+        btn.textContent = '▶ 播放';
+      }
+    });
+  });
+
+  // 2) 本地 MP3 自绘暖纸播放器
+  const fmtTime = (sec) => {
+    if (!Number.isFinite(sec) || sec < 0) return '--:--';
+    const m = String(Math.floor(sec / 60)).padStart(2, '0');
+    const s = String(Math.floor(sec % 60)).padStart(2, '0');
+    return `${m}:${s}`;
+  };
+
+  document.querySelectorAll('[data-local-player]').forEach((wrap) => {
+    const audio = wrap.querySelector('[data-lp-audio]');
+    const btn = wrap.querySelector('[data-lp-toggle]');
+    const fill = wrap.querySelector('[data-lp-fill]');
+    const bar = wrap.querySelector('[data-lp-bar]');
+    const timeEl = wrap.querySelector('[data-lp-time]');
+    if (!audio || !btn || !fill || !bar || !timeEl) return;
+
+    const syncTime = () => {
+      const dur = audio.duration;
+      const cur = audio.currentTime || 0;
+      timeEl.textContent = `${fmtTime(cur)} / ${fmtTime(dur)}`;
+      if (Number.isFinite(dur) && dur > 0) {
+        fill.style.width = `${(cur / dur) * 100}%`;
+      }
+    };
+
+    audio.addEventListener('loadedmetadata', syncTime);
+    audio.addEventListener('timeupdate', syncTime);
+    audio.addEventListener('ended', () => {
+      btn.textContent = '▶';
+      fill.style.width = '0%';
+    });
+
+    btn.addEventListener('click', () => {
+      if (audio.paused) {
+        audio.play();
+        btn.textContent = '❚❚';
+      } else {
+        audio.pause();
+        btn.textContent = '▶';
+      }
+    });
+
+    bar.addEventListener('click', (e) => {
+      const dur = audio.duration;
+      if (!Number.isFinite(dur) || dur <= 0) return;
+      const r = bar.getBoundingClientRect();
+      audio.currentTime = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * dur;
+      syncTime();
+    });
+  });
+</script>
+
+<style>
+  .media-unit {
+    float: right;
+    width: 228px;
+    margin: 4px 0 22px 30px;
+    background: var(--paper-soft);
+    border: 1px solid var(--ink-3);
+    box-shadow: 5px 5px 0 rgba(58, 51, 43, 0.14);
+    overflow: hidden;
+  }
+
+  .cover-wrap {
+    aspect-ratio: 1 / 1;
+    background: var(--paper-deep);
+    overflow: hidden;
+  }
+
+  .cover-wrap.has-dock {
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .cover-wrap img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .player-dock {
+    padding: 12px 13px;
+  }
+
+  .netease-dock,
+  .local-player {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .pd-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .pd-eb {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--dye-plum);
+  }
+
+  .pd-title {
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--ink);
+    line-height: 1.35;
+  }
+
+  .pd-title span {
+    font-style: italic;
+    font-size: 12px;
+    color: var(--ink-3);
+    margin-left: 5px;
+  }
+
+  .pd-btns {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .btn-mini {
+    flex: 1 1 auto;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 5px 8px;
+    border: 1px solid var(--rule);
+    background: var(--paper);
+    color: var(--ink-2);
+    text-decoration: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: background var(--dur-base), color var(--dur-base), border-color var(--dur-base);
+  }
+
+  .btn-mini:hover {
+    border-color: var(--ink);
+    color: var(--ink);
+    background: var(--paper-deep);
+  }
+
+  .btn-mini.accent {
+    border-color: var(--dye-tomato);
+    color: var(--dye-tomato);
+    background: var(--tomato-wash);
+  }
+
+  .btn-mini.accent:hover {
+    background: var(--dye-tomato);
+    color: var(--paper);
+  }
+
+  .pd-embed {
+    padding-top: 8px;
+    border-top: 1px dotted var(--rule);
+  }
+
+  .pd-embed[hidden] {
+    display: none;
+  }
+
+  .pd-embed :global(iframe) {
+    display: block;
+    width: 100%;
+    border: 0;
+    border-radius: 2px;
+  }
+
+  /* ─── 本地 MP3 迷你控制条 ─── */
+  .lp-ctrl {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .lp-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 1.5px solid var(--ink);
+    background: var(--dye-tomato);
+    color: var(--paper);
+    font-size: 11px;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    transition: transform 150ms var(--ease-out);
+  }
+
+  .lp-btn:hover {
+    transform: scale(1.06);
+  }
+
+  .lp-track {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .lp-bar {
+    height: 6px;
+    background: var(--paper-deep);
+    border: 1px solid var(--rule);
+    cursor: pointer;
+  }
+
+  .lp-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--dye-tomato);
+    transition: width 80ms linear;
+  }
+
+  .lp-sub {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ext-mini {
+    color: var(--ink-3);
+    text-decoration: none;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .ext-mini:hover {
+    color: var(--dye-tomato);
+    border-color: var(--dye-tomato);
+  }
+
+  @media (max-width: 640px) {
+    .media-unit {
+      float: none;
+      width: min(260px, 100%);
+      margin: 0 0 24px;
+    }
+  }
+</style>

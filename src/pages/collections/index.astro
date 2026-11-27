@@ -15,10 +15,12 @@ const books = (await safe('books')).map((b) => ({
   kind: '书',
   title: b.data.titleZh || b.data.title,
   by: [b.data.author, b.data.year].filter(Boolean).join(' · '),
-  cover: null,
+  cover: b.data.cover ?? null,
   tint: b.data.coverTint,
   note: b.data.note,
   link: null,
+  listenUrl: null,
+  audio: null,
   ratio: '2 / 3',
   date: b.data.date?.valueOf() ?? 0,
 }));
@@ -30,6 +32,8 @@ const albums = (await safe('listening')).map((t) => ({
   tint: t.data.coverTint,
   note: t.data.why,
   link: t.data.link ?? null,
+  listenUrl: t.data.listenUrl ?? null,
+  audio: t.data.audio ?? null,
   ratio: '1 / 1',
   date: t.data.date?.valueOf() ?? 0,
 }));
@@ -49,31 +53,116 @@ const shelf = [...books, ...albums].sort((a, b) => b.date - a.date);
     ) : (
       <section class="shelf">
         {shelf.map((it) => {
-          const inner = (
-            <>
-              <div class="art" style={`aspect-ratio:${it.ratio}`}>
-                {it.cover
-                  ? <img src={it.cover} alt={`${it.title} — ${it.by}`} loading="lazy" />
-                  : <div class={`swatch swatch-${it.tint}`}></div>}
-                {!it.cover && <span class="title-on-cover">{it.title}</span>}
-              </div>
+          const primaryHref = it.link || it.listenUrl || null;
+          const primaryExternal = !it.link && Boolean(it.listenUrl);
+          const hasActions = Boolean(it.listenUrl || it.audio || it.link);
+
+          const artBlock = (
+            <div class="art" style={`aspect-ratio:${it.ratio}`}>
+              {it.cover
+                ? <img src={it.cover} alt={`${it.title} — ${it.by}`} loading="lazy" />
+                : <div class={`swatch swatch-${it.tint}`}></div>}
+              {!it.cover && <span class="title-on-cover">{it.title}</span>}
+            </div>
+          );
+
+          return (
+            <article class:list={['item', { 'is-link': Boolean(primaryHref) }]}>
+              {primaryHref ? (
+                <a
+                  class="art-link"
+                  href={primaryHref}
+                  target={primaryExternal ? '_blank' : undefined}
+                  rel={primaryExternal ? 'noopener noreferrer' : undefined}
+                  aria-label={it.title}
+                >
+                  {artBlock}
+                </a>
+              ) : artBlock}
+
               <div class="body">
                 <span class="tag">{it.kind}</span>
-                <span class="title">{it.title}</span>
+                {primaryHref ? (
+                  <a
+                    class="title"
+                    href={primaryHref}
+                    target={primaryExternal ? '_blank' : undefined}
+                    rel={primaryExternal ? 'noopener noreferrer' : undefined}
+                  >
+                    {it.title}
+                  </a>
+                ) : (
+                  <span class="title">{it.title}</span>
+                )}
                 <span class="by">{it.by}</span>
                 {it.note && <p class="note">{it.note}</p>}
+
+                {hasActions && (
+                  <div class="actions">
+                    {it.listenUrl && (
+                      <a class="act accent" href={it.listenUrl} target="_blank" rel="noopener noreferrer">
+                        ♪ 去听 ↗
+                      </a>
+                    )}
+                    {it.audio && (
+                      <button class="act accent" type="button" data-card-audio={it.audio}>
+                        ▶ 试听
+                      </button>
+                    )}
+                    {it.link && (
+                      <a class="act" href={it.link}>
+                        读笔记 →
+                      </a>
+                    )}
+                  </div>
+                )}
               </div>
-            </>
+            </article>
           );
-          return it.link
-            ? <a class="item is-link" href={it.link}>{inner}</a>
-            : <div class="item">{inner}</div>;
         })}
       </section>
     )}
 
   </main>
 </Base>
+
+<script>
+  // 列表页本地 MP3 轻量试听（全局单音频播放，保持卡片整齐不撑高）
+  let currentAudio = null;
+  let currentBtn = null;
+
+  document.querySelectorAll('[data-card-audio]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const src = btn.getAttribute('data-card-audio');
+      if (!src) return;
+
+      if (currentBtn === btn && currentAudio) {
+        if (currentAudio.paused) {
+          currentAudio.play();
+          btn.textContent = '❚❚ 暂停';
+        } else {
+          currentAudio.pause();
+          btn.textContent = '▶ 试听';
+        }
+        return;
+      }
+
+      if (currentAudio) {
+        currentAudio.pause();
+        if (currentBtn) currentBtn.textContent = '▶ 试听';
+      }
+
+      const audio = new Audio(src);
+      currentAudio = audio;
+      currentBtn = btn;
+      btn.textContent = '❚❚ 暂停';
+      audio.play().catch(() => { btn.textContent = '▶ 试听'; });
+      audio.addEventListener('ended', () => {
+        if (currentBtn === btn) btn.textContent = '▶ 试听';
+      });
+    });
+  });
+</script>
 
 <style>
   .head { padding: 56px 0 40px; max-width: 760px; }
@@ -86,19 +175,31 @@ const shelf = [...books, ...albums].sort((a, b) => b.date - a.date);
 
   /* 统一网格: 书 (2:3) 与专辑 (1:1) 底部对齐 */
   .shelf { display: grid; grid-template-columns: repeat(4, 1fr); gap: 48px 32px; align-items: end; }
-  .item { display: flex; flex-direction: column; gap: 12px; color: inherit; text-decoration: none; }
+  .item { display: flex; flex-direction: column; gap: 12px; color: inherit; }
+  .art-link { display: block; text-decoration: none; color: inherit; }
   .art { position: relative; overflow: hidden; background: var(--paper-deep); border: 1px solid var(--ink-3); box-shadow: 0 6px 12px -6px rgba(58,51,43,0.25); transition: transform 400ms var(--ease-soft), box-shadow var(--dur-base); }
-  .item.is-link:hover .art { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--ink-2); }
+  .art-link:hover .art { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--ink-2); }
   .art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
   .art .swatch { position: absolute; inset: 0; opacity: 0.75; filter: url(#dg-wc) blur(2px); }
   .art .title-on-cover { position: absolute; inset: 0; padding: 16px; font-family: var(--font-card); font-size: 18px; line-height: 1.15; color: var(--ink); }
 
   .body { display: flex; flex-direction: column; gap: 4px; }
   .tag { align-self: flex-start; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; padding: 2px 7px; border: 1px solid var(--ink-3); color: var(--ink-2); border-radius: 2px; margin-bottom: 4px; }
-  .title { font-family: var(--font-body); font-style: italic; font-size: 16px; line-height: 1.25; color: var(--ink); }
-  .item.is-link:hover .title { color: var(--dye-tomato); }
+  .title { font-family: var(--font-body); font-style: italic; font-size: 16px; line-height: 1.25; color: var(--ink); text-decoration: none; }
+  a.title:hover { color: var(--dye-tomato); }
   .by { font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); letter-spacing: 0.04em; }
   .note { font-family: var(--font-body); font-style: italic; font-size: 13px; line-height: 1.45; color: var(--ink-3); margin: 6px 0 0; }
+
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px dotted var(--rule); }
+  .act {
+    font-family: var(--font-mono); font-size: 11px; padding: 4px 9px;
+    border: 1px solid var(--rule); background: transparent; color: var(--ink-2);
+    text-decoration: none; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
+    transition: background var(--dur-base), color var(--dur-base), border-color var(--dur-base);
+  }
+  .act:hover { border-color: var(--ink); color: var(--ink); background: var(--paper-deep); }
+  .act.accent { border-color: var(--dye-tomato); color: var(--dye-tomato); background: var(--tomato-wash); }
+  .act.accent:hover { background: var(--dye-tomato); color: var(--paper); }
 
   .swatch-t { background: radial-gradient(60% 60% at 30% 30%, var(--tomato-wash), transparent 70%), radial-gradient(50% 50% at 70% 70%, var(--sun-wash), transparent 70%); }
   .swatch-s { background: radial-gradient(60% 60% at 30% 30%, var(--sage-wash), transparent 70%), radial-gradient(50% 50% at 70% 70%, var(--sun-wash), transparent 70%); }

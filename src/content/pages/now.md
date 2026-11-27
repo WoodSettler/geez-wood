@@ -2,7 +2,7 @@
 crumb: § 05 · <b>now</b> · 我现在在做什么
 head:
   title: currently <em>tending</em><span class="dot">.</span>
-  lead: 这一页随时更新。 可以看到我最近在干嘛。
+  lead: 这一页随时更新。 可以看到我最近在干什么。
 facets:
   do:
     label: 在做

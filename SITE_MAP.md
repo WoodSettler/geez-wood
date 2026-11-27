@@ -105,13 +105,14 @@ tags:        [string]   # 纯文本展示, 不再链接
 readingMin:  number
 featured:    boolean (default: false)
 draft:       boolean (default: false)
-cover:       string  (public-relative image path)
+cover:       string  (public/covers/essays/ 上传或相对路径)
+music:       { title, artist, netease, audio }  # 可选配乐 (网易云单曲折叠播 / 本地 MP3 自绘播)
 ```
 
 ### book  (`src/content/books/*.json`)
 ```yaml
 title, titleZh, author (required), year, status: reading|finished|paused|want,
-rating, progress, note, coverTint: t|s|u|p|n, date
+rating, progress, note, cover (public/covers/books/), coverTint: t|s|u|p|n, date
 ```
 
 ### listening  (`src/content/listening/*.json`)
@@ -122,13 +123,20 @@ year:       number
 kind:       album | track | podcast (default: album)   # 决定 collections 上的标签
 status:     loop | new | paused (default: new)
 why:        string
-cover:      string   # 真封面图, e.g. /covers/listening/xxx.jpg
+cover:      string   # 真封面图, e.g. /covers/listening/xxx/cover.jpg
 coverTint:  t | s | u | p | n   # 无 cover 时的兜底色块
-link:       string   # 点封面跳转的站内 URL
+listenUrl:  string   # 网易云/流媒体外链, collections 卡片显示「♪ 去听 ↗」
+audio:      string   # 本地 MP3 (public/audio/listening/), collections 卡片显示轻量试听按钮
+link:       string   # 关联站内文章 URL
 date:       date     # 加入日期, 用于排序
 ```
 
-**封面约定:** 有 `cover` 用真图, 没有就用 `coverTint` 色块。真图路径必须是 Keystatic 的格式 `public/covers/listening/<条目文件名>/cover.jpg` (值写 `/covers/listening/<条目文件名>/cover.jpg`); 放在别处的话, 后台读不到图, 一保存就会把 `cover` 字段清掉。最省事的办法是直接在后台上传。
+**媒体上传约定:**
+- 封面图与正文插图均可在本地 Keystatic 后台（`http://127.0.0.1:4321/keystatic`）直接上传：
+  - 文章封面 → `public/covers/essays/`；文章正文插图 → `public/images/essays/`；文章本地音频 → `public/audio/essays/`
+  - 在听封面 → `public/covers/listening/`；在听本地音频 → `public/audio/listening/`
+  - 书籍封面 → `public/covers/books/`
+- 网易云音乐常态化仅在文章详情页做单曲页内折叠播放（`AudioCard`），`/collections` 列表页保持简洁纯外跳。
 
 ---
 

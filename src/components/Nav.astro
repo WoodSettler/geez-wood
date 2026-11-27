@@ -2,10 +2,13 @@
 import Mark from './Mark.astro';
 import { SITE, NAV, FEATURES } from '../site.config.js';
 
-const { current = 'home' } = Astro.props;
+const { current = 'home', hoverReveal = false } = Astro.props;
 ---
 
-<nav class="top">
+{hoverReveal && <div class="nav-hover-zone" aria-hidden="true"></div>}
+{hoverReveal && <div class="nav-hint-pill" aria-hidden="true"></div>}
+
+<nav class:list={['top', { 'is-hover-reveal': hoverReveal }]}>
   <div class="shell row">
     <a class="brand" href="/" aria-label="home">
       <Mark size={32} />
@@ -37,6 +40,36 @@ const { current = 'home' } = Astro.props;
     background: rgba(244, 238, 223, 0.92);
     backdrop-filter: blur(8px);
     border-bottom: 1px solid var(--rule);
+  }
+  .nav-hover-zone {
+    position: fixed; top: 0; left: 0; right: 0; height: 32px; z-index: 65;
+  }
+  .nav-hint-pill {
+    position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
+    width: 36px; height: 3px; border-radius: 99px;
+    background: var(--rule); opacity: 0.7; z-index: 55; pointer-events: none;
+    transition: opacity 220ms var(--ease-soft);
+  }
+  @media (hover: hover) and (min-width: 761px) {
+    nav.top.is-hover-reveal {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 70;
+      transform: translateY(-102%);
+      opacity: 0;
+      transition: transform 260ms var(--ease-out), opacity 220ms var(--ease-soft);
+    }
+    .nav-hover-zone:hover ~ nav.top.is-hover-reveal,
+    nav.top.is-hover-reveal:hover,
+    nav.top.is-hover-reveal:focus-within {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    .nav-hover-zone:hover ~ .nav-hint-pill {
+      opacity: 0;
+    }
+  }
+  @media (hover: none), (max-width: 760px) {
+    .nav-hover-zone, .nav-hint-pill { display: none; }
+    nav.top.is-hover-reveal { position: relative; }
   }
   nav.top .row {
     display: flex; align-items: center; justify-content: space-between;
