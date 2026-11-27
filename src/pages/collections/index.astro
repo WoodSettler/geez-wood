@@ -24,19 +24,23 @@ const books = (await safe('books')).map((b) => ({
   ratio: '2 / 3',
   date: b.data.date?.valueOf() ?? 0,
 }));
-const albums = (await safe('listening')).map((t) => ({
-  kind: KIND_LABEL[t.data.kind] ?? '专辑',
-  title: t.data.title,
-  by: [t.data.artist, t.data.year].filter(Boolean).join(' · '),
-  cover: t.data.cover ?? null,
-  tint: t.data.coverTint,
-  note: t.data.why,
-  link: t.data.link ?? null,
-  listenUrl: t.data.listenUrl ?? null,
-  audio: t.data.audio ?? null,
-  ratio: '1 / 1',
-  date: t.data.date?.valueOf() ?? 0,
-}));
+const albums = (await safe('listening')).map((t) => {
+  const hasDetail = (t.data.tracks?.length ?? 0) > 0 || (t.data.gallery?.length ?? 0) > 0;
+  return {
+    kind: KIND_LABEL[t.data.kind] ?? '专辑',
+    title: t.data.title,
+    by: [t.data.artist, t.data.year].filter(Boolean).join(' · '),
+    cover: t.data.cover ?? null,
+    tint: t.data.coverTint,
+    note: t.data.why,
+    link: t.data.link ?? null,
+    detailHref: hasDetail ? `/collections/${t.id}` : null,
+    listenUrl: t.data.listenUrl ?? null,
+    audio: t.data.audio ?? null,
+    ratio: '1 / 1',
+    date: t.data.date?.valueOf() ?? 0,
+  };
+});
 const shelf = [...books, ...albums].sort((a, b) => b.date - a.date);
 ---
 
@@ -53,9 +57,9 @@ const shelf = [...books, ...albums].sort((a, b) => b.date - a.date);
     ) : (
       <section class="shelf">
         {shelf.map((it) => {
-          const primaryHref = it.link || it.listenUrl || null;
-          const primaryExternal = !it.link && Boolean(it.listenUrl);
-          const hasActions = Boolean(it.listenUrl || it.audio || it.link);
+          const primaryHref = it.detailHref || it.link || it.listenUrl || null;
+          const primaryExternal = !it.detailHref && !it.link && Boolean(it.listenUrl);
+          const hasActions = Boolean(it.listenUrl || it.audio || it.detailHref || it.link);
 
           const artBlock = (
             <div class="art" style={`aspect-ratio:${it.ratio}`}>
@@ -108,6 +112,11 @@ const shelf = [...books, ...albums].sort((a, b) => b.date - a.date);
                       <button class="act accent" type="button" data-card-audio={it.audio}>
                         ▶ 试听
                       </button>
+                    )}
+                    {it.detailHref && (
+                      <a class="act" href={it.detailHref}>
+                        曲目与画册 →
+                      </a>
                     )}
                     {it.link && (
                       <a class="act" href={it.link}>

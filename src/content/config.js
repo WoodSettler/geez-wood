@@ -60,6 +60,11 @@ const listening = defineCollection({
     link:      z.string().nullish(),                                // 关联站内文章 URL
     listenUrl: z.string().nullish(),                                // 网易云/外链试听直达 URL
     audio:     z.string().nullish(),                                // 本地 MP3 试听路径 (public/audio/listening/)
+    tracks:    z.array(z.string()).default([]),                     // 曲目列表（自动生成 /collections/[slug] 详情页）
+    gallery:   z.array(z.object({
+      src:     z.string(),
+      caption: z.string().nullish(),
+    })).default([]),                                                // 封套与画册插图
     date:      z.coerce.date().nullish(),                           // 加入日期, 用于排序
   }),
 });

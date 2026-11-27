@@ -6,6 +6,45 @@
   "status": "new",
   "cover": "/covers/listening/music-for-your-local-church/cover.jpg",
   "coverTint": "t",
-  "link": "/writing/music-for-your-local-church",
+  "tracks": [
+    "Infected Kittens",
+    "Wave Goodbye",
+    "Roses in an Endless Field",
+    "The Cat and the Crow",
+    "Blasphemy, the Word",
+    "Nemesis",
+    "Velvet Stomach Spasms",
+    "Love Like Berlin",
+    "At the End of the Street",
+    "Little Perfection",
+    "What Are You",
+    "I Feel the Vibrations of Earth"
+  ],
+  "gallery": [
+    {
+      "src": "/images/listening/music-for-your-local-church/outside.jpg",
+      "caption": "外封三折展开 · 乐队合影、曲目与封面（Dead Scarlet Records ds018）"
+    },
+    {
+      "src": "/images/listening/music-for-your-local-church/inside.jpg",
+      "caption": "内折展开 · 双白鸦与红玫瑰"
+    },
+    {
+      "src": "/images/listening/music-for-your-local-church/cd.jpg",
+      "caption": "实体 CD 盘面"
+    },
+    {
+      "src": "/images/listening/music-for-your-local-church/booklet-alpha-omega.jpg",
+      "caption": "Booklet 扉页与尾页（Α / Ω）"
+    },
+    {
+      "src": "/images/listening/music-for-your-local-church/booklet-art-spread.jpg",
+      "caption": "Booklet 内页画作与歌词"
+    },
+    {
+      "src": "/images/listening/music-for-your-local-church/booklet-credits.jpg",
+      "caption": "Booklet 乐队与制作信息"
+    }
+  ],
   "date": "2026-11-27"
 }

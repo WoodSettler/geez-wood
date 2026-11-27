@@ -52,15 +52,18 @@ const recent = [
     sub: b.data.author,
     href: '/collections',
   })),
-  ...listening.map((t) => ({
-    date: t.data.date ?? null,
-    ts: t.data.date?.valueOf() ?? 0,
-    kind: LISTEN_KIND[t.data.kind] ?? '专辑',
-    tone: 'plum',
-    title: t.data.title,
-    sub: t.data.artist,
-    href: t.data.link ?? '/collections',
-  })),
+  ...listening.map((t) => {
+    const hasDetail = (t.data.tracks?.length ?? 0) > 0 || (t.data.gallery?.length ?? 0) > 0;
+    return {
+      date: t.data.date ?? null,
+      ts: t.data.date?.valueOf() ?? 0,
+      kind: LISTEN_KIND[t.data.kind] ?? '专辑',
+      tone: 'plum',
+      title: t.data.title,
+      sub: t.data.artist,
+      href: hasDetail ? `/collections/${t.id}` : (t.data.link ?? '/collections'),
+    };
+  }),
 ]
   .sort((a, b) => b.ts - a.ts)
   .slice(0, 6);

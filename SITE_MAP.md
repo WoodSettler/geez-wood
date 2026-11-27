@@ -40,6 +40,7 @@ Last updated: 2026·11 · v0.2 (极简版)
 | URL | Template | Purpose |
 |---|---|---|
 | `/writing/[slug]` | `pages/writing/[slug].astro` | 单篇文章 |
+| `/collections/[slug]` | `pages/collections/[slug].astro` | 在听专辑独立详情页（含曲目列表与封套画册，仅当填写 `tracks` 或 `gallery` 时生成，不混入 `/writing`） |
 
 ## Footer-only / utility
 
@@ -128,6 +129,8 @@ coverTint:  t | s | u | p | n   # 无 cover 时的兜底色块
 listenUrl:  string   # 网易云/流媒体外链, collections 卡片显示「♪ 去听 ↗」
 audio:      string   # 本地 MP3 (public/audio/listening/), collections 卡片显示轻量试听按钮
 link:       string   # 关联站内文章 URL
+tracks:     [string] # 曲目列表（自动生成 /collections/[slug] 详情页）
+gallery:    [{ src, caption }] # 封套与画册插图 (public/images/listening/)
 date:       date     # 加入日期, 用于排序
 ```
 

@@ -25,7 +25,7 @@ const {
   slug,
 } = Astro.props;
 
-const displayUrl = `${SITE.domain}/writing/${slug}`;
+const displayUrl = canonicalUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
 ---
 
 <div

@@ -1,0 +1,193 @@
+---
+/**
+ * Collections 专辑 / 在听独立详情页（/collections/[slug]）。
+ * 仅对填写了曲目列表（tracks）或画册插图（gallery）的 listening 条目生成，
+ * 让专辑资料归属 /collections，不混入 /writing 文章列表。
+ */
+import Base from '../../layouts/Base.astro';
+import AudioCard from '../../components/AudioCard.astro';
+import ShareBar from '../../components/ShareBar.astro';
+import { SITE } from '../../site.config.js';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  let items = [];
+  try {
+    items = await getCollection('listening');
+  } catch {
+    items = [];
+  }
+  return items
+    .filter((t) => (t.data.tracks?.length ?? 0) > 0 || (t.data.gallery?.length ?? 0) > 0)
+    .map((t) => ({ params: { slug: t.id }, props: { entry: t } }));
+}
+
+const { entry } = Astro.props;
+const d = entry.data;
+const KIND_LABEL = { album: '专辑', track: '单曲', podcast: '播客' };
+const kindLabel = KIND_LABEL[d.kind] ?? '专辑';
+const subtitle = [d.artist, d.year].filter(Boolean).join(' · ');
+const dateStr = d.date ? d.date.toLocaleDateString('en-CA').replace(/-/g, '·') : '';
+const canonicalUrl = new URL(`/collections/${entry.id}/`, Astro.site).href;
+const shareDesc = d.why || `${subtitle} · ${d.tracks?.length || 0} tracks`;
+const hasMusic = Boolean(d.listenUrl || d.audio);
+---
+
+<Base
+  current="collections"
+  hoverNav
+  title={d.title}
+  description={shareDesc}
+  image={d.cover}
+  ogType="article"
+  publishedTime={d.date?.toISOString()}
+>
+  <main class="shell">
+    <div class="album-wrap">
+      <header class="album-head">
+        <div class="eb">
+          {dateStr && `${dateStr} · `}{kindLabel}
+          {d.tracks.length > 0 && ` · ${d.tracks.length} tracks`}
+        </div>
+        <h1>{d.title}</h1>
+        {subtitle && <p class="subtitle">{subtitle}</p>}
+      </header>
+
+      <section class="intro-block">
+        <AudioCard
+          cover={d.cover}
+          coverAlt={`${d.title} — ${d.artist}`}
+          music={hasMusic ? { title: d.title, artist: d.artist, netease: d.listenUrl, audio: d.audio } : null}
+        />
+
+        {d.why && <p class="why">{d.why}</p>}
+
+        {d.tracks.length > 0 && (
+          <div class="tracks">
+            <h2>曲目</h2>
+            <ol>
+              {d.tracks.map((name, i) => (
+                <li>
+                  <span class="no">{String(i + 1).padStart(2, '0')}</span>
+                  <span class="name">{name}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+        )}
+      </section>
+
+      {d.gallery.length > 0 && (
+        <section class="gallery">
+          <h2>封套与画册</h2>
+          <div class="plates">
+            {d.gallery.map((g) => (
+              <figure class="plate">
+                <img src={g.src} alt={g.caption || d.title} loading="lazy" />
+                {g.caption && <figcaption>{g.caption}</figcaption>}
+              </figure>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <footer class="colophon">
+        <span>collected by <b>{SITE.name}</b>{dateStr && ` · ${dateStr}`}</span>
+        {d.link && <a class="back" href={d.link}>读相关笔记 →</a>}
+        <a class="back" href="/collections">← 返回 collections</a>
+      </footer>
+
+      <ShareBar
+        title={d.title}
+        subtitle={subtitle}
+        summary={d.why || ''}
+        cover={d.cover}
+        dateStr={dateStr}
+        canonicalUrl={canonicalUrl}
+        slug={entry.id}
+      />
+    </div>
+  </main>
+</Base>
+
+<style>
+  .album-wrap {
+    max-width: 780px;
+    margin: 0 auto;
+    padding-top: clamp(44px, 6.5vh, 72px);
+  }
+
+  .album-head { margin-bottom: 32px; }
+  .album-head .eb {
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--ink-3); margin-bottom: 10px;
+  }
+  .album-head h1 {
+    font-family: var(--font-display); font-weight: 400; font-style: italic;
+    font-size: clamp(32px, 4vw, 50px); line-height: 1.1;
+    letter-spacing: -0.02em; margin: 0; color: var(--ink); text-wrap: balance;
+  }
+  .album-head .subtitle {
+    font-family: var(--font-mono); font-size: 13px; color: var(--ink-3);
+    margin: 12px 0 0; letter-spacing: 0.04em;
+  }
+
+  .intro-block::after { content: ""; display: table; clear: both; }
+  .why {
+    font-family: var(--font-body); font-size: 18px; line-height: 1.75;
+    color: var(--ink); margin: 0 0 28px;
+  }
+
+  h2 {
+    font-family: var(--font-h); font-weight: 700; font-size: 18px;
+    color: var(--ink); margin: 0 0 16px; letter-spacing: 0.02em;
+  }
+  h2::before {
+    content: "§ "; color: var(--dye-tomato);
+    font-family: var(--font-display); font-style: italic; font-weight: 400;
+  }
+
+  .tracks ol {
+    list-style: none; padding: 0; margin: 0;
+    border-top: 1px solid var(--rule);
+  }
+  .tracks li {
+    display: flex; align-items: baseline; gap: 14px;
+    padding: 9px 4px; border-bottom: 1px dotted var(--rule);
+    font-family: var(--font-body); font-size: 16px; line-height: 1.45; color: var(--ink);
+  }
+  .tracks .no {
+    font-family: var(--font-mono); font-size: 11px; color: var(--ink-4);
+    font-variant-numeric: tabular-nums; flex-shrink: 0;
+  }
+
+  .gallery { margin-top: 56px; }
+  .plates { display: flex; flex-direction: column; gap: 36px; }
+  .plate { margin: 0; }
+  .plate img {
+    display: block; width: 100%; height: auto;
+    border: 1px solid var(--ink-3); box-shadow: 5px 5px 0 rgba(58, 51, 43, 0.14);
+    background: var(--paper-deep);
+  }
+  .plate figcaption {
+    margin-top: 10px;
+    font-family: var(--font-mono); font-size: 11px; color: var(--ink-3);
+    letter-spacing: 0.03em;
+  }
+
+  .colophon {
+    margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--rule);
+    display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 10px 20px;
+    font-family: var(--font-mono); font-size: 12px; color: var(--ink-3);
+  }
+  .colophon b { color: var(--ink); font-weight: 500; }
+  .colophon a.back {
+    color: var(--ink-2); text-decoration: none; border-bottom: 1px solid var(--rule);
+    transition: color var(--dur-base), border-color var(--dur-base);
+  }
+  .colophon a.back:hover { color: var(--dye-tomato); border-color: var(--dye-tomato); }
+
+  @media (max-width: 760px) {
+    .album-wrap { padding-top: 28px; }
+  }
+</style>

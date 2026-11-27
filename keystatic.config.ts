@@ -138,6 +138,27 @@ export default config({
           publicPath: '/audio/listening/',
         }),
         link: fields.text({ label: '关联站内文章 URL (可选，如 /writing/爱是昂贵的)' }),
+        tracks: fields.array(fields.text({ label: '曲目名' }), {
+          label: '曲目列表 (可选，填写后自动生成 /collections/[slug] 详情页)',
+          itemLabel: (p) => p.value,
+        }),
+        gallery: fields.array(
+          fields.object(
+            {
+              src: fields.image({
+                label: '插图',
+                directory: 'public/images/listening',
+                publicPath: '/images/listening/',
+              }),
+              caption: fields.text({ label: '图注 (可选)' }),
+            },
+            { label: '画册图' }
+          ),
+          {
+            label: '封套与画册插图 (可选)',
+            itemLabel: (p) => p.fields.caption.value || '插图',
+          }
+        ),
         date: fields.date({ label: '加入日期' }),
       },
     }),
