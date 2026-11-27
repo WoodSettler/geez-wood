@@ -21,6 +21,7 @@ facets:
     items:
       - 声音玩具 · 爱是昂贵的 · 2015 旧专重听
       - Motorama  · 后朋克？（但本人称并不是）
+      - Mani Deum · Music for your local church ... or your local brothel
   think:
     label: 在想
     eb: thinking
