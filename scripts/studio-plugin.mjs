@@ -144,15 +144,22 @@ async function collectStatus(rootDir) {
     branch = b.stdout.trim() || 'main';
   } catch {}
 
+  let ahead = 0;
+  try {
+    const a = await runCmd('git', ['rev-list', '--count', `origin/${branch}..HEAD`], rootDir);
+    ahead = parseInt(a.stdout.trim(), 10) || 0;
+  } catch {}
+
   const oversized = scanLargeFiles(rootDir);
 
   return {
     branch,
+    ahead,
     changes,
     essays,
     recentEdited,
     oversized,
-    clean: changes.length === 0,
+    clean: changes.length === 0 && ahead === 0,
   };
 }
 
@@ -235,33 +242,38 @@ export function studioPlugin() {
               return;
             }
 
-            if (st.changes.length === 0) {
+            if (st.changes.length === 0 && st.ahead === 0) {
               sendJson(res, 200, { ok: true, noop: true, message: '当前没有未发布的本地改动。' });
               return;
             }
 
-            // 生成默认提交说明
             let commitMsg = (body.message || '').trim();
-            if (!commitMsg) {
-              const names = st.changes
-                .filter((c) => c.preview)
-                .map((c) => c.preview.label);
-              const uniq = [...new Set(names)].slice(0, 3);
-              commitMsg = uniq.length > 0
-                ? `内容更新: ${uniq.join('、')}`
-                : `内容更新 (${st.changes.length} 项改动)`;
+            if (st.changes.length > 0) {
+              // 生成默认提交说明
+              if (!commitMsg) {
+                const names = st.changes
+                  .filter((c) => c.preview)
+                  .map((c) => c.preview.label);
+                const uniq = [...new Set(names)].slice(0, 3);
+                commitMsg = uniq.length > 0
+                  ? `内容更新: ${uniq.join('、')}`
+                  : `内容更新 (${st.changes.length} 项改动)`;
+              }
+
+              // Step 1: 本地静态构建校验
+              logs.push('▶ 正在执行 npm run build 校验…');
+              const buildRes = await runCmd('npm', ['run', 'build'], rootDir, 180000);
+              logs.push(buildRes.stdout.split(/\r?\n/).slice(-6).join('\n').trim());
+
+              // Step 2: git add & commit
+              logs.push(`▶ 正在提交：${commitMsg}`);
+              await runCmd('git', ['add', '-A'], rootDir);
+              const commitRes = await runCmd('git', ['commit', '-m', commitMsg], rootDir);
+              logs.push(commitRes.stdout.trim());
+            } else {
+              commitMsg = `推送 ${st.ahead} 个本地待发布提交`;
+              logs.push(`▶ 检测到 ${st.ahead} 个本地待推送提交，跳过重复提交直接推送…`);
             }
-
-            // Step 1: 本地静态构建校验
-            logs.push('▶ 正在执行 npm run build 校验…');
-            const buildRes = await runCmd('npm', ['run', 'build'], rootDir, 180000);
-            logs.push(buildRes.stdout.split(/\r?\n/).slice(-6).join('\n').trim());
-
-            // Step 2: git add & commit
-            logs.push(`▶ 正在提交：${commitMsg}`);
-            await runCmd('git', ['add', '-A'], rootDir);
-            const commitRes = await runCmd('git', ['commit', '-m', commitMsg], rootDir);
-            logs.push(commitRes.stdout.trim());
 
             // Step 3: 若远端有新提交（例如自动化周报），先安全 rebase 再 push
             logs.push('▶ 正在同步并推送到 origin/main…');

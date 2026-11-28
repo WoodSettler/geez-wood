@@ -21,6 +21,15 @@ function Test-PortOpen {
 
 Set-Location $RepoRoot
 
+# 若本地代理（ProxyHub 17890）正在运行且当前未设置代理变量，自动注入供 git pull/push 使用
+if (-not $env:HTTPS_PROXY -and -not $env:https_proxy) {
+  if (Test-PortOpen -P 17890) {
+    $env:HTTP_PROXY  = 'http://127.0.0.1:17890'
+    $env:HTTPS_PROXY = 'http://127.0.0.1:17890'
+    $env:NO_PROXY    = 'localhost,127.0.0.1,::1'
+  }
+}
+
 if (Test-PortOpen -P $Port) {
   Write-Host "Geez Wood 本地后台已在运行，直接打开浏览器：$StudioUrl" -ForegroundColor Green
   Start-Process $StudioUrl
